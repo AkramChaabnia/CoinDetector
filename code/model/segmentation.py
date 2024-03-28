@@ -92,7 +92,6 @@ def edge_based_segmentation(image):
     
     return segmented_image
 
-
 def combine_segmentation_results(seg_mask1, seg_mask2):
     # Calculate overlapping regions
     overlapping_regions = cv2.bitwise_and(seg_mask1, seg_mask2)
