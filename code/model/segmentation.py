@@ -114,5 +114,14 @@ def combine_segmentation_results(seg_mask1, seg_mask2):
     # Combine segmentation masks using weighted sum
     combined_mask = (seg_mask1 * confidence_score1) + (seg_mask2 * confidence_score2)
 
+    # Apply thresholding and post-processing as needed
+    _, combined_mask = cv2.threshold(combined_mask, 127, 255, cv2.THRESH_BINARY)
+
+# Apply morphological operations for further refinement
+    kernel = np.ones((5, 5), np.uint8)
+    combined_mask = cv2.morphologyEx(combined_mask, cv2.MORPH_OPEN, kernel)
+    combined_mask = cv2.morphologyEx(combined_mask, cv2.MORPH_CLOSE, kernel)
+
+
     return combined_mask.astype(np.uint8)
 
