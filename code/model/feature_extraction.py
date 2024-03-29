@@ -18,73 +18,29 @@ def find_contours(image):
     return contours, hierarchy
 
 
+def calculate_circularity(contour):
+    area = cv2.contourArea(contour)
+    perimeter = cv2.arcLength(contour, True)
+    circularity = (4 * np.pi * area) / (perimeter * perimeter)
+    return circularity
+
+def filter_contours(contours, max_aspect_ratio_deviation, min_circularity_threshold):
+    filtered_contours = []
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        aspect_ratio = w / h if h != 0 else 0
+        circularity = calculate_circularity(contour)
+        
+        if abs(aspect_ratio - 1.0) <= max_aspect_ratio_deviation and circularity >= min_circularity_threshold:
+            filtered_contours.append(contour)
+    
+    return filtered_contours
+
+
 def display_contours(grayscale_image, contours):
     # Draw contours on the original grayscale image
     image_with_contours = cv2.cvtColor(grayscale_image, cv2.COLOR_GRAY2BGR)
     cv2.drawContours(image_with_contours, contours, -1, (0, 255, 0), 2)
     
     return image_with_contours
-
-def apply_hough_circle_detection(image, contours, hierarchy, dp=1, minDist=20, param1=50, param2=30, minRadius=0, maxRadius=0):
-    # Initialize empty list to store detected circles
-    all_circles = []
-
-    # Iterate through contours and hierarchy
-    for i, contour in enumerate(contours):
-        # Access the hierarchy information for the current contour
-        current_hierarchy = hierarchy[0][i]
-
-        # Check if the contour is an external contour and not a child contour
-        if current_hierarchy[3] == -1:
-            # Compute bounding box around contour
-            x, y, w, h = cv2.boundingRect(contour)
-
-            # Extract ROI (region of interest) from grayscale image
-            roi = image[y:y+h, x:x+w]
-
-            # Apply Hough Circle Transform to detect circles within ROI
-            circles = cv2.HoughCircles(roi, cv2.HOUGH_GRADIENT, dp, minDist, param1=param1, param2=param2, minRadius=minRadius, maxRadius=maxRadius)
-
-            # If circles are found, append them to the list of detected circles
-            if circles is not None:
-                circles = np.uint16(np.around(circles))
-                for circle in circles[0]:
-                    # Calculate center coordinates relative to the original image
-                    center = (circle[0] + x, circle[1] + y)
-                    radius = circle[2]
-                    all_circles.append((center, radius))
-
-    # Draw the detected circles on the original image
-    image_with_circles = np.copy(image)
-    for circle in all_circles:
-        center, radius = circle
-        cv2.circle(image_with_circles, center, radius, (255, 255, 255), 2)
-
-    return image_with_circles
-
-
-
-def apply_skimage_hough_circle_detection(image, radius_range=(10, 50), num_peaks=10):
-    # Convert image to grayscale if it's not already in grayscale
-    if len(image.shape) > 2:
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    # Apply Hough Circle Transform
-    hough_radii = np.arange(radius_range[0], radius_range[1], 2)
-    hough_res = transform.hough_circle(image, hough_radii)
-
-    # Select peaks in Hough space
-    accums, cx, cy, radii = transform.hough_circle_peaks(hough_res, hough_radii,
-                                                         total_num_peaks=num_peaks)
-
-    # Create a copy of the original image to draw circles on
-    image_with_circles = np.copy(image)
-    
-    # Draw circles on the image
-    for center_y, center_x, radius in zip(cy, cx, radii):
-        circy, circx = np.ogrid[:image.shape[0], :image.shape[1]]
-        mask = (circy - center_y)**2 + (circx - center_x)**2 < radius**2
-        image_with_circles[mask] = 255
-
-    return image_with_circles
 
