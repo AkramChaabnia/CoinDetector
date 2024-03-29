@@ -44,3 +44,45 @@ def display_contours(grayscale_image, contours):
     
     return image_with_contours
 
+#def apply_hough_circle_detection_contours(image, contours, dp=2, minDist=20, param1=100, param2=20, minRadius=10, maxRadius=120):
+
+
+#def def apply_hough_circle_detection_preprocessed(image, dp=1, minDist=50, param1=200, param2=30, minRadius=20, maxRadius=100):
+
+
+
+def apply_hough_circle_detection_contours(image, contours, dp=2, minDist=50, param1=200, param2=30, minRadius=20, maxRadius=100):
+    # Create a mask to store all contours (single-channel)
+    mask = np.zeros_like(image, dtype=np.uint8)
+
+    # Draw contours on the mask
+    cv2.drawContours(mask, contours, -1, (255), thickness=cv2.FILLED)
+
+    # Apply Hough Circle Transform to detect circles
+    # You may need to adjust dp, minDist, param1, param2, minRadius, and maxRadius here
+    circles = cv2.HoughCircles(mask, cv2.HOUGH_GRADIENT, dp, minDist, param1=param1, param2=param2, minRadius=minRadius, maxRadius=maxRadius)
+
+    # If circles are found, draw them on the original image
+    if circles is not None:
+        circles = np.uint16(np.around(circles))
+        for circle in circles[0]:
+            center = (circle[0], circle[1])
+            radius = circle[2]
+            cv2.circle(image, center, radius, (0, 255, 0), 2)
+
+    return image
+
+def apply_hough_circle_detection_preprocessed(image, dp=1, minDist=50, param1=200, param2=30, minRadius=20, maxRadius=100):
+    # Apply Hough Circle Transform to detect circles
+    # You may need to adjust dp, minDist, param1, param2, minRadius, and maxRadius here
+    circles = cv2.HoughCircles(image, cv2.HOUGH_GRADIENT, dp, minDist, param1=param1, param2=param2, minRadius=minRadius, maxRadius=maxRadius)
+
+    # If circles are found, draw them on the original image
+    if circles is not None:
+        circles = np.uint16(np.around(circles))
+        for circle in circles[0]:
+            center = (circle[0], circle[1])
+            radius = circle[2]
+            cv2.circle(image, center, radius, (0, 255, 0), 2)
+
+    return image
