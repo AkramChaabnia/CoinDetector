@@ -35,6 +35,7 @@ def move_files(image_dir, json_dir, files, output_dir):
 def split_dataset(data_path, shuffle=True):
     ratio = (60, 20, 20)
     # récuperer tous les fichiers Json
+    #ca doit etre fixe
     dataset_files = [f for f in os.listdir(data_path) if f.endswith('.json')]
     if shuffle:
         random.shuffle(data_path)
