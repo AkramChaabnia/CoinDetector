@@ -10,24 +10,23 @@ def main():
     original_image = cv2.imread(image_path)
 
     # Preprocess the image
-    grayscale_image = convert_to_grayscale(image_path)
-    processed_image = apply_gaussian_blur(grayscale_image)
+    processed_image = apply_gaussian_blur(original_image.copy())
     gamma_processed_image = apply_gamma_correction(processed_image, gamma=1.5)
+    grayscale_image = convert_to_grayscale(gamma_processed_image.copy())
 
-    
     # Segment the image using color-based and Otsu thresholding
-    otsu_segmented_image = apply_otsu_threshold(gamma_processed_image.copy())
-    color_segmented_image = cv2.bitwise_not(color_based_segmentation(original_image))
+    otsu_segmented_image = apply_otsu_threshold(grayscale_image.copy())
+    color_segmented_image = cv2.bitwise_not(color_based_segmentation(original_image.copy()))
 
     # Refine Otsu's segmentation using color-based segmentation
     refined_segmentation = combine_segmentation_results(otsu_segmented_image, color_segmented_image)
     refined_segmentation = apply_opening(apply_closing(refined_segmentation))
 
-    # Apply Canny edge detection
-    cannied_image = apply_canny_edge_detection(refined_segmentation)
+    # Apply Canny edge detection to the grayscale image
+    cannied_image = apply_canny_edge_detection(refined_segmentation.copy())
 
     # Find contours in the cannied image and display them
-    contours, hierarchy = find_contours(cannied_image)
+    contours = find_contours(cannied_image)
     image_with_contours = display_contours(grayscale_image, contours)
 
     # Filter contours by circularity and aspect ratio and display them
@@ -36,8 +35,8 @@ def main():
 
 
     # Apply Hough Circle Detection from contours and preprocessed image
-    image_with_circles_contours = apply_hough_circle_detection_contours(gamma_processed_image.copy(), filtered_contours)
-    image_with_circles_preprocessed = apply_hough_circle_detection_preprocessed(gamma_processed_image.copy())
+    image_with_circles_contours = apply_hough_circle_detection_contours(grayscale_image.copy(), filtered_contours)
+    image_with_circles_preprocessed = apply_hough_circle_detection_preprocessed(grayscale_image.copy())
 
     # Display all images side by side
     fig, axes = plt.subplots(3, 4, figsize=(18, 10))
@@ -93,9 +92,16 @@ def main():
     axes[2, 1].axis('off')
 
 # Plot the gamma processed image
-    axes[2, 2].imshow(gamma_processed_image, cmap='gray')
+    axes[2, 2].imshow(cv2.cvtColor(gamma_processed_image, cv2.COLOR_BGR2RGB))
     axes[2, 2].set_title('Gamma Processed Image')
     axes[2, 2].axis('off')
+
+# Plot the gaussian processed image
+    #axes[2, 3].imshow(, cmap='gray')
+    axes[2, 3].set_title('image_with_contours')
+    axes[2, 3].axis('off')
+
+
 
 
     plt.tight_layout()
