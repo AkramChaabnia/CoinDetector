@@ -1,8 +1,27 @@
 # segmentation.py
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+from skimage.filters import threshold_multiotsu
+from scipy.signal import find_peaks
 from postprocessing import *
 from preprocess import *
+
+def apply_segmentation(hist_processed_image, thresholds):
+    # Apply thresholding
+    segmented_image = np.zeros_like(hist_processed_image)
+    for threshold in thresholds:
+        segmented_image[hist_processed_image > threshold] = 255
+
+    return segmented_image
+
+def apply_segmentation1(hist_processed_image, thresholds):
+    # Appliquer la segmentation basée sur les seuils
+    #_, segmented_image = cv2.threshold(hist_processed_image, thresholds[0], 255, cv2.THRESH_BINARY)
+    segmented_image = np.digitize(hist_processed_image, bins=thresholds)
+
+    return segmented_image
+
 
 def apply_otsu_threshold(image):
     # Apply Otsu's thresholding
@@ -14,10 +33,33 @@ def apply_otsu_threshold(image):
     
     return segmented_image
 
-def apply_adaptive_threshold(image, block_size=21, c=7, method=cv2.ADAPTIVE_THRESH_GAUSSIAN_C):
+
+def apply_adaptive_threshold(image):
     # Apply adaptive thresholding
-    segmented_image = cv2.adaptiveThreshold(image, 255, method, cv2.THRESH_BINARY, block_size, c)
+    segmented_image = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 7)
+    #segmented_image = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
     return segmented_image
+
+def multi_otsu_thresholding(image):
+    # Calculer l'histogramme
+    hist = np.histogram(image.ravel(), bins=256)[0]
+
+    # Détecter les pics significatifs dans l'histogramme
+    peaks, _ = find_peaks(hist, height=4000, width=3, distance=40)
+    print("Pics Détectés:", peaks)
+
+    # Déterminer le nombre de classes pour la segmentation
+    num_classes = len(peaks) + 1  # Ajouter 1 car le nombre de classes est le nombre de seuils + 1
+    print("Nombre de Classes pour la Segmentation:", num_classes)
+
+    # Appliquer la segmentation avec multi-Otsu
+    thresholds = threshold_multiotsu(image, classes=num_classes)
+    print("Seuils de Segmentation:", thresholds)
+
+    # Appliquer la segmentation
+    segmented_image = apply_segmentation(image, thresholds)
+
+    return segmented_image, hist, peaks
 
 def color_based_segmentation(image):
     # Convert image from BGR to HSV color space
