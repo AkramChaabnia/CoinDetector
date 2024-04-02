@@ -29,7 +29,6 @@ def apply_gamma_correction(image, gamma=1.0):
     corrected_image = cv2.LUT(image, table)
     return corrected_image
 
-
 def apply_histogram_equalization(image):
     # Check if the image is not grayscale
     if len(image.shape) > 2 and image.shape[2] > 1:
@@ -40,8 +39,6 @@ def apply_histogram_equalization(image):
     equalized_image = cv2.equalizeHist(image)
 
     return equalized_image
-
-
 
 def apply_adaptive_histogram_equalization(image, clip_limit=2.0, tile_grid_size=(14, 14)):    
     # Create CLAHE object
@@ -56,6 +53,3 @@ def apply_adaptive_histogram_equalization(image, clip_limit=2.0, tile_grid_size=
     clahe_image = clahe.apply(image)
 
     return clahe_image
-
-
-

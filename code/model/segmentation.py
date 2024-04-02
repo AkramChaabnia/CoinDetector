@@ -7,6 +7,7 @@ from scipy.signal import find_peaks
 from postprocessing import *
 from preprocess import *
 
+
 def apply_segmentation(hist_processed_image, thresholds):
     # Apply thresholding
     segmented_image = np.zeros_like(hist_processed_image)
@@ -21,6 +22,29 @@ def apply_segmentation1(hist_processed_image, thresholds):
     segmented_image = np.digitize(hist_processed_image, bins=thresholds)
 
     return segmented_image
+
+def apply_segmentation2(hist_processed_image, thresholds):
+    # Initialize segmented image
+    segmented_image = np.zeros_like(hist_processed_image)
+
+    # Assign different intensity values to different classes based on thresholds
+    num_classes = len(thresholds) + 1
+    for i, threshold in enumerate(thresholds):
+        intensity = int(255 * (i+1) / num_classes)  # Change here
+        if i == 0:
+            # Pixels below the first threshold belong to class 0
+            segmented_image[hist_processed_image <= threshold] = intensity
+        elif i == len(thresholds):
+            # Pixels above the last threshold belong to the last class
+            segmented_image[hist_processed_image > thresholds[-1]] = 255
+        else:
+            # Pixels between consecutive thresholds belong to intermediate classes
+            segmented_image[(hist_processed_image > thresholds[i-1]) & (hist_processed_image <= threshold)] = intensity
+
+    # Invert segmented image to have white regions
+    inverted_segmented_image = 255 - segmented_image
+
+    return inverted_segmented_image
 
 
 def apply_otsu_threshold(image):
@@ -43,9 +67,10 @@ def apply_adaptive_threshold(image):
 def multi_otsu_thresholding(image):
     # Calculer l'histogramme
     hist = np.histogram(image.ravel(), bins=256)[0]
+    
 
     # Détecter les pics significatifs dans l'histogramme
-    peaks, _ = find_peaks(hist, height=4000, width=3, distance=40)
+    peaks, _ = find_peaks(hist, height=5000, width=3, distance=60)
     print("Pics Détectés:", peaks)
 
     # Déterminer le nombre de classes pour la segmentation
