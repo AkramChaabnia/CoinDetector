@@ -6,7 +6,7 @@ from feature_extraction import *
 from postprocessing import *
 
 def main():
-    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\48.jpeg"
+    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\21.jpg"
     original_image = cv2.imread(image_path)
 
     # Preprocess the image

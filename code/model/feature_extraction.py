@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 from skimage import feature, transform
 import numpy as np
+from postprocessing import *
 
 
 def apply_canny_edge_detection(image, threshold1=100, threshold2=200):
@@ -15,8 +16,9 @@ def apply_canny_edge_detection(image, threshold1=100, threshold2=200):
 def find_contours(image):
     # Find contours
     contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    circular_contours = check_circularity(contours, 0.3, 2000)
 
-    return contours
+    return circular_contours
 
 def calculate_circularity(contour):
     area = cv2.contourArea(contour)
