@@ -175,7 +175,7 @@ def cluster_contours(contours):
 
     return clustered_contours
 
-def merge_and_postprocess_contours(contours_list, circles):
+def merge_and_postprocess_contours1(contours_list, circles):
     # Merge contours into a single list
     merged_contours = [cnt for sublist in contours_list for cnt in sublist]
 
@@ -195,3 +195,33 @@ def merge_and_postprocess_contours(contours_list, circles):
 
     return merged_contours
 
+def merge_and_postprocess_contours(contours_list, circles, min_circularity=0.7, min_area_threshold=1400):
+    # Merge contours into a single list
+    merged_contours = [cnt for sublist in contours_list for cnt in sublist]
+
+    # Add circular contours to the merged contours
+    if circles is not None:
+        for circle in circles[0]:
+            center = (circle[0], circle[1])
+            radius = circle[2]
+            # Define theta within the loop
+            for theta in np.linspace(0, 2*np.pi, 50):
+                circle_contour = np.array([[center[0] + radius * np.cos(theta)], [center[1] + radius * np.sin(theta)]], dtype=np.int32).T
+                merged_contours.append(circle_contour)
+
+    # Apply post-processing techniques
+    merged_contours = non_max_suppression(merged_contours)
+
+    # Filter out non-circular contours based on circularity and area
+    circular_contours = []
+    for contour in merged_contours:
+        area = cv2.contourArea(contour)
+        perimeter = cv2.arcLength(contour, True)
+        circularity = 4 * np.pi * area / (perimeter ** 2)
+        if circularity >= min_circularity and area >= min_area_threshold:
+            circular_contours.append(contour)
+
+    # Cluster the circular contours
+    clustered_contours = cluster_contours(circular_contours)
+
+    return clustered_contours

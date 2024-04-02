@@ -6,7 +6,7 @@ from feature_extraction import *
 from postprocessing import *
 
 def main():
-    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\40.jpg"
+    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\48.jpeg"
     original_image = cv2.imread(image_path)
 
     # Preprocess the image
@@ -44,7 +44,9 @@ def main():
     # Apply Hough Circle Detection from contours and preprocessed image
     image_with_circles_preprocessed, circles = apply_hough_circle_detection_preprocessed(preprocessed_image.copy())
 
+    #merged_contours = filter_contours([contours, contours1, contours2, contours3], circles)
     merged_contours = merge_and_postprocess_contours([contours, contours1, contours2, contours3], circles)
+
     image_with_merged_contours = display_contours(preprocessed_image, merged_contours)
 
 
