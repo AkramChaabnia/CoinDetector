@@ -87,8 +87,8 @@ def apply_hough_circle_detection_preprocessed(image, dp=1.3, minDist=30, param1=
         for c in circles[0, :]:
             cv2.circle(cimg, (c[0], c[1]), c[2], (0, 255, 0), 3)  # Draw outer circle
             cv2.circle(cimg, (c[0], c[1]), 1, (0, 0, 255), 5)      # Draw center point
-        return cimg
+        return cimg, circles
 
-    return image
+    return image, None
 
 

@@ -175,3 +175,23 @@ def cluster_contours(contours):
 
     return clustered_contours
 
+def merge_and_postprocess_contours(contours_list, circles):
+    # Merge contours into a single list
+    merged_contours = [cnt for sublist in contours_list for cnt in sublist]
+
+    # Add circles to the merged contours
+    if circles is not None:
+        for circle in circles[0]:
+            center = (circle[0], circle[1])
+            radius = circle[2]
+            # Define theta within the loop
+            for theta in np.linspace(0, 2*np.pi, 50):
+                circle_contour = np.array([[center[0] + radius * np.cos(theta)], [center[1] + radius * np.sin(theta)]], dtype=np.int32).T
+                merged_contours.append(circle_contour)
+
+    # Apply post-processing techniques
+    merged_contours = non_max_suppression(merged_contours)
+    merged_contours = cluster_contours(merged_contours)
+
+    return merged_contours
+

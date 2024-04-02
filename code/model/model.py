@@ -40,10 +40,14 @@ def main():
     contours3 = find_contours(cannied_image3)
     image_with_contours3 = display_contours(preprocessed_image, contours3)
 
-    # Apply Hough Circle Detection from contours and preprocessed image
-    image_with_circles_preprocessed = apply_hough_circle_detection_preprocessed(preprocessed_image.copy())
 
-    # Display all images side by side
+    # Apply Hough Circle Detection from contours and preprocessed image
+    image_with_circles_preprocessed, circles = apply_hough_circle_detection_preprocessed(preprocessed_image.copy())
+
+    merged_contours = merge_and_postprocess_contours([contours, contours1, contours2, contours3], circles)
+    image_with_merged_contours = display_contours(preprocessed_image, merged_contours)
+
+
     # Display all images side by side
     fig, axes = plt.subplots(4, 5, figsize=(18, 18))
 
@@ -129,6 +133,12 @@ def main():
         axes[3, 0].axvline(x=peak, color='r', linestyle='--')
     axes[3, 0].axis('off')
 
+    # Plot the image with merged contours
+    axes[3, 1].imshow(image_with_merged_contours, cmap='gray')
+    axes[3, 1].set_title('Merged Contours')
+    axes[3, 1].axis('off')
+
+    
     plt.tight_layout()
     plt.show()
 
