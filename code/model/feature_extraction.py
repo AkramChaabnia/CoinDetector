@@ -62,6 +62,55 @@ def apply_canny_edge_detection(image, threshold1=100, threshold2=200):
     
     return filtered_contours
 
+def find_contours_circles(image):
+    # Find contours
+    contours, hierarchy = cv2.findContours(image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours = check_circularity(contours, 0.3, 10000)
+    circles = contours_to_circles(contours)
+    return circles, contours, hierarchy
+
+
+def display_contours(image, contours):
+    # Draw contours on the original grayscale image
+    image_with_contours = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+    cv2.drawContours(image_with_contours, contours, -1, (0, 255, 0), 2)
+    return image_with_contours
+
+def display_circles(image, circles):
+    # Convert the image to BGR color
+    image_with_circles = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+
+    # Convert circles to integers
+    circles = np.uint16(np.around(circles))
+
+    # Draw each circle
+    for c in circles:
+        # Draw outer circle
+        cv2.circle(image_with_circles, (c[0], c[1]), c[2], (0, 255, 0), 3)
+        # Draw center point
+        cv2.circle(image_with_circles, (c[0], c[1]), 1, (0, 0, 255), 5)
+
+    return image_with_circles
+
+def display_circles1(image, circles):
+    image_with_circles = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+    for center, radius in circles:
+        cv2.circle(image_with_circles, center, radius, (0, 255, 0), 2)
+
+    """for contour in contours:
+    # min area 
+        if cv2.contourArea(contour) > 10000:
+        # find radius
+            (x,y),radius = cv2.minEnclosingCircle(contour) 
+            center = (int(x),int(y))
+            radius = int(radius)
+            cv2.circle(image_with_contours,center,radius,(0,0,255),10)
+            #coin_number+=1
+"""
+    return image_with_circles
+
+
+
 def apply_hough_circle_detection_contours(image, contours, dp=2, minDist=50, param1=200, param2=30, minRadius=20, maxRadius=100):
     # Create a mask to store all contours (single-channel)
     mask = np.zeros_like(image, dtype=np.uint8)
