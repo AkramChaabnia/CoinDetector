@@ -6,21 +6,21 @@ from feature_extraction import *
 from postprocessing import *
 
 def main():
-    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\40.jpg"
+    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\21.jpg"
     original_image = cv2.imread(image_path)
 
     # Preprocess the image
     preprocessed_image = apply_gaussian_blur(original_image.copy())
-    colored_preprocessed_image = apply_gamma_correction(preprocessed_image, gamma=1.5)
-    preprocessed_image = convert_to_grayscale(colored_preprocessed_image.copy())
-    #preprocessed_image = apply_median_blur(preprocessed_image.copy())
-    preprocessed_image = apply_adaptive_histogram_equalization(preprocessed_image.copy())
+    preprocessed_image1 = apply_gamma_correction(preprocessed_image.copy())
+    preprocessed_image2 = convert_to_grayscale(preprocessed_image1.copy())
+    preprocessed_image3 = apply_median_blur(preprocessed_image2.copy())
+    preprocessed_image4 = apply_adaptive_histogram_equalization(preprocessed_image3.copy())
 
     # Segment the image using otsu, adaptive, multi-otsu, and color-based thresholding
-    otsu_segmented_image = apply_otsu_threshold(preprocessed_image.copy())
-    multi_otsu_segmented_image, hist, peaks = multi_otsu_thresholding(preprocessed_image.copy())
-    color_segmented_image = cv2.bitwise_not(color_based_segmentation(colored_preprocessed_image.copy()))
-    adaptive_segmented_image = apply_adaptive_threshold(preprocessed_image.copy())
+    otsu_segmented_image = apply_otsu_threshold(preprocessed_image4.copy())
+    multi_otsu_segmented_image, hist, peaks = multi_otsu_thresholding(preprocessed_image4.copy())
+    color_segmented_image = color_based_segmentation(preprocessed_image1.copy())
+    adaptive_segmented_image = apply_adaptive_threshold(preprocessed_image3.copy())
 
 
 
@@ -33,30 +33,26 @@ def main():
 
     # Find contours in the cannied images and display them
     circles, contours, hierarchy = find_contours_circles(cannied_image)
-    image_with_contours = display_contours(preprocessed_image, contours)
-    image_with_circles = display_circles(preprocessed_image, circles)
+    image_with_contours = display_contours(preprocessed_image4, contours)
+    image_with_circles = display_circles(preprocessed_image4, circles)
 
     circles1, contours1, hierarchy1 = find_contours_circles(cannied_image1)
-    image_with_contours1 = display_contours(preprocessed_image, contours1)
-    image_with_circles1 = display_circles(preprocessed_image, circles1)
+    image_with_contours1 = display_contours(preprocessed_image4, contours1)
+    image_with_circles1 = display_circles(preprocessed_image4, circles1)
 
     circles2, contours2, hierarchy2 = find_contours_circles(cannied_image2)
-    image_with_contours2 = display_contours(preprocessed_image, contours2)
-    image_with_circles2 = display_circles(preprocessed_image, circles2)
+    image_with_contours2 = display_contours(preprocessed_image4, contours2)
+    image_with_circles2 = display_circles(preprocessed_image4, circles2)
 
     circles3, contours3, hierarchy3 = find_contours_circles(cannied_image3)
-    image_with_contours3 = display_contours(preprocessed_image, contours3)
-    image_with_circles3 = display_circles(preprocessed_image, circles3)
-
+    image_with_contours3 = display_contours(preprocessed_image4, contours3)
+    image_with_circles3 = display_circles(preprocessed_image4, circles3)
 
     # Apply Hough Circle Detection from contours and preprocessed image
-    image_with_circles_preprocessed, circle = apply_hough_circle_detection_preprocessed(preprocessed_image.copy())
-
-    #merged_contours = merge_and_postprocess_contours([contours, contours1, contours2, contours3], circle)
-    #image_with_merged_contours = display_contours(preprocessed_image, merged_contours)
+    image_with_circles_preprocessed, circle = apply_hough_circle_detection_preprocessed(preprocessed_image3.copy())
 
     merged_contours = merge_and_postprocess_circles([circle, circles, circles1, circles2, circles3])
-    image_with_merged_contours = display_circles(preprocessed_image, merged_contours)
+    image_with_merged_contours = display_circles(preprocessed_image4, merged_contours)
 
 
     # Display all images side by side
@@ -88,7 +84,8 @@ def main():
     axes[0, 4].axis('off')
 
     # Plot the preprocessed image
-    axes[1, 0].imshow(preprocessed_image, cmap='gray')
+    #axes[1, 0].imshow(preprocessed_image, cmap='gray')
+    axes[1, 0].imshow(cv2.cvtColor(preprocessed_image1, cv2.COLOR_BGR2RGB))
     axes[1, 0].set_title('Preprocessed Image')
     axes[1, 0].axis('off')
 
