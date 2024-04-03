@@ -13,14 +13,36 @@ def apply_canny_edge_detection(image, threshold1=100, threshold2=200):
     return edges
 
 
-def find_contours(image):
-    # Find contours
-    contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    circular_contours = check_circularity(contours, 0.3, 2000)
+#def detect_blobs(canny_image):
+    # Create SimpleBlobDetector parameters
+    params = cv2.SimpleBlobDetector_Params()
+    params.minThreshold = 150
+    params.maxThreshold = 230
+    params.filterByArea = True
+    params.minArea = 50
+    params.maxArea = 50000
+    params.filterByConvexity = True
+    params.minConvexity = 0.9
+    params.maxConvexity = 1.0
 
-    return circular_contours
+    params.filterByCircularity = False
+    params.filterByInertia = False
+    params.filterByColor = False
 
-def calculate_circularity(contour):
+    # Create SimpleBlobDetector object
+    detector = cv2.SimpleBlobDetector_create(params)
+
+    # Detect keypoints (blobs) in the canny image
+    keypoints = detector.detect(canny_image)
+
+    # Draw keypoints on the canny image
+    image_with_keypoints = cv2.drawKeypoints(canny_image, keypoints, None, (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+    return image_with_keypoints
+
+
+
+#def calculate_circularity(contour):
     area = cv2.contourArea(contour)
     perimeter = cv2.arcLength(contour, True)
     if perimeter == 0:
@@ -28,7 +50,7 @@ def calculate_circularity(contour):
     circularity = (4 * np.pi * area) / (perimeter * perimeter)
     return circularity
 
-def filter_contours(contours, max_aspect_ratio_deviation, min_circularity_threshold):
+#def filter_contours(contours, max_aspect_ratio_deviation, min_circularity_threshold):
     filtered_contours = []
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
@@ -39,16 +61,6 @@ def filter_contours(contours, max_aspect_ratio_deviation, min_circularity_thresh
             filtered_contours.append(contour)
     
     return filtered_contours
-
-
-def display_contours(grayscale_image, contours):
-    # Draw contours on the original grayscale image
-    image_with_contours = cv2.cvtColor(grayscale_image, cv2.COLOR_GRAY2BGR)
-    cv2.drawContours(image_with_contours, contours, -1, (0, 255, 0), 2)
-    
-    return image_with_contours
-
-
 
 def apply_hough_circle_detection_contours(image, contours, dp=2, minDist=50, param1=200, param2=30, minRadius=20, maxRadius=100):
     # Create a mask to store all contours (single-channel)
@@ -77,6 +89,10 @@ def apply_hough_circle_detection_contours(image, contours, dp=2, minDist=50, par
 #def def apply_hough_circle_detection_preprocessed(image, dp=1, minDist=50, param1=200, param2=30, minRadius=20, maxRadius=100):
 
 #def apply_hough_circle_detection_preprocessed(image, dp=1.3, minDist=30, param1=150, param2=70, minRadius=78, maxRadius=0):
+#def apply_hough_circle_detection_preprocessed(image, dp=1.3, minDist=30, param1=150, param2=70, minRadius=78, maxRadius=0):
+
+#HoughCircles(image,coin,CV_HOUGH_GRADIENT,2,20,450,60,0,0 );
+
 def apply_hough_circle_detection_preprocessed(image, dp=1.3, minDist=30, param1=150, param2=70, minRadius=78, maxRadius=0):
 
     # Apply Hough Circle Transform to detect circles
