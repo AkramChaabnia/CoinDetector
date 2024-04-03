@@ -118,34 +118,39 @@ def apply_hough_circle_detection_contours(image, contours, dp=2, minDist=50, par
     # Draw contours on the mask
     cv2.drawContours(mask, contours, -1, (255), thickness=cv2.FILLED)
 
+    # Preprocess the image
+    # Apply Gaussian blur to reduce noise
+    gray = cv2.GaussianBlur(image, (5, 5), 0)
+
+    # Apply automatic Canny edge detection
+    v = np.median(gray)
+    sigma = 0.33
+    lower = int(max(0, (1.0 - sigma) * v))
+    upper = int(min(255, (1.0 + sigma) * v))
+    edges = cv2.Canny(gray, lower, upper)
+
     # Apply Hough Circle Transform to detect circles
-    # You may need to adjust dp, minDist, param1, param2, minRadius, and maxRadius here
-    circles = cv2.HoughCircles(mask, cv2.HOUGH_GRADIENT, dp, minDist, param1=param1, param2=param2, minRadius=minRadius, maxRadius=maxRadius)
+    circles = cv2.HoughCircles(edges, cv2.HOUGH_GRADIENT, dp, minDist, param1=param1, param2=param2, minRadius=minRadius, maxRadius=maxRadius)
 
     # If circles are found, draw them on the original image
     if circles is not None:
-        cimg = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)  # Convert to BGR for drawing
         circles = np.uint16(np.around(circles))
         for c in circles[0, :]:
-            cv2.circle(cimg, (c[0], c[1]), c[2], (0, 255, 0), 3)  # Draw outer circle
-            cv2.circle(cimg, (c[0], c[1]), 1, (0, 0, 255), 5)      # Draw center point
-        return cimg
-    return image
-
-#def apply_hough_circle_detection_contours(image, contours, dp=2, minDist=20, param1=100, param2=20, minRadius=10, maxRadius=120):
+            cv2.circle(image, (c[0], c[1]), c[2], (0, 255, 0), 3)  # Draw outer circle
+            cv2.circle(image, (c[0], c[1]), 1, (0, 0, 255), 5)      # Draw center point
+        return image, circles
+    return image, None
 
 
-#def def apply_hough_circle_detection_preprocessed(image, dp=1, minDist=50, param1=200, param2=30, minRadius=20, maxRadius=100):
-
-#def apply_hough_circle_detection_preprocessed(image, dp=1.3, minDist=30, param1=150, param2=70, minRadius=78, maxRadius=0):
-#def apply_hough_circle_detection_preprocessed(image, dp=1.3, minDist=30, param1=150, param2=70, minRadius=78, maxRadius=0):
-
-#HoughCircles(image,coin,CV_HOUGH_GRADIENT,2,20,450,60,0,0 );
-
-def apply_hough_circle_detection_preprocessed(image, dp=1.3, minDist=30, param1=150, param2=70, minRadius=78, maxRadius=0):
+def apply_hough_circle_detection_preprocessed(image, dp=1.3, minDist=85, param1=50, param2=40, minRadius=50, maxRadius=100):
+    # Convert to grayscale if the image is in color
+    if len(image.shape) == 3:
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    else:
+        gray = image
 
     # Apply Hough Circle Transform to detect circles
-    circles = cv2.HoughCircles(image, cv2.HOUGH_GRADIENT, dp, minDist, param1=param1, param2=param2, minRadius=minRadius, maxRadius=maxRadius)
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp, minDist, param1=param1, param2=param2, minRadius=minRadius, maxRadius=maxRadius)
 
     # If circles are found, draw them on the original image
     if circles is not None:
@@ -157,5 +162,3 @@ def apply_hough_circle_detection_preprocessed(image, dp=1.3, minDist=30, param1=
         return cimg, circles
 
     return image, None
-
-
