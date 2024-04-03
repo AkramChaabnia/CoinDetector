@@ -4,6 +4,7 @@ from sklearn.cluster import KMeans
 from sklearn.cluster import DBSCAN
 import numpy as np
 
+
 def apply_opening(image, kernel_size=3, iterations=1):
     """
     Apply opening to the input image.
@@ -163,21 +164,6 @@ def cluster_contours(contours):
 
     return clustered_contours
 
-def check_circularity(contours, min_circularity=0.7, min_area_threshold=1400):
-    circular_contours = []
-    for contour in contours:
-        area = cv2.contourArea(contour)
-        perimeter = cv2.arcLength(contour, True)
-        if perimeter == 0:
-            continue
-
-        circularity = 4 * np.pi * area / (perimeter ** 2)
-        if circularity >= min_circularity and area >= min_area_threshold:
-            circular_contours.append(contour)
-    return circular_contours
-
-
-
 def merge_and_postprocess_contours(contours_list, circles):
     # Merge contours into a single list
     merged_contours = [cnt for sublist in contours_list for cnt in sublist]
@@ -187,18 +173,22 @@ def merge_and_postprocess_contours(contours_list, circles):
         for circle in circles[0]:
             center = (circle[0], circle[1])
             radius = circle[2]
+            # Create a list to hold the points on the circle
+            circle_contour = []
             # Define theta within the loop
             for theta in np.linspace(0, 2*np.pi, 50):
-                circle_contour = np.array([[center[0] + radius * np.cos(theta)], [center[1] + radius * np.sin(theta)]], dtype=np.int32).T
-                merged_contours.append(circle_contour)
-    
-    # Apply post-processing techniques
+                point = np.array([center[0] + radius * np.cos(theta), center[1] + radius * np.sin(theta)], dtype=np.int32)
+                circle_contour.append(point)
+            # Convert the list to a 2D array and append it to merged_contours
+            merged_contours.append(np.array(circle_contour))
+
+
+    # Apply NMS to the contours
     merged_contours = non_max_suppression(merged_contours)
     # Cluster the circular contours
     #merged_contours = cluster_contours(merged_contours)
 
     return merged_contours
-
 
 def merge_and_postprocess_contours1(contours_list, circles):
     # Merge contours into a single list
@@ -219,3 +209,29 @@ def merge_and_postprocess_contours1(contours_list, circles):
     merged_contours = cluster_contours(merged_contours)
 
     return merged_contours
+
+
+def check_circularity(contours, min_circularity, min_area_threshold):
+    circular_contours = []
+    for contour in contours:
+        area = cv2.contourArea(contour)
+        perimeter = cv2.arcLength(contour, True)
+        if perimeter == 0:
+            continue
+
+        circularity = 4 * np.pi * area / (perimeter ** 2)
+        if circularity >= min_circularity and area >= min_area_threshold:
+            circular_contours.append(contour)
+    return circular_contours
+
+def contours_to_circles(contours):
+    circles = []
+    for contour in contours:
+        # min area 
+        if cv2.contourArea(contour) > 10000:
+            # find radius
+            (x, y), radius = cv2.minEnclosingCircle(contour)
+            circles.append([int(x), int(y), int(radius)])
+    return np.array(circles)
+
+
