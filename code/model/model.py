@@ -6,13 +6,14 @@ from feature_extraction import *
 from postprocessing import *
 
 def main():
-    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\21.jpg"
+    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\40.jpg"
     original_image = cv2.imread(image_path)
 
     # Preprocess the image
     preprocessed_image = apply_gaussian_blur(original_image.copy())
     colored_preprocessed_image = apply_gamma_correction(preprocessed_image, gamma=1.5)
     preprocessed_image = convert_to_grayscale(colored_preprocessed_image.copy())
+    #preprocessed_image = apply_median_blur(preprocessed_image.copy())
     preprocessed_image = apply_adaptive_histogram_equalization(preprocessed_image.copy())
 
     # Segment the image using otsu, adaptive, multi-otsu, and color-based thresholding
@@ -31,27 +32,35 @@ def main():
 
 
     # Find contours in the cannied images and display them
-    contours = find_contours(cannied_image)
+    circles, contours, hierarchy = find_contours_circles(cannied_image)
     image_with_contours = display_contours(preprocessed_image, contours)
-    contours1 = find_contours(cannied_image1)
+    image_with_circles = display_circles(preprocessed_image, circles)
+
+    circles1, contours1, hierarchy1 = find_contours_circles(cannied_image1)
     image_with_contours1 = display_contours(preprocessed_image, contours1)
-    contours2 = find_contours(cannied_image2)
+    image_with_circles1 = display_circles(preprocessed_image, circles1)
+
+    circles2, contours2, hierarchy2 = find_contours_circles(cannied_image2)
     image_with_contours2 = display_contours(preprocessed_image, contours2)
-    contours3 = find_contours(cannied_image3)
+    image_with_circles2 = display_circles(preprocessed_image, circles2)
+
+    circles3, contours3, hierarchy3 = find_contours_circles(cannied_image3)
     image_with_contours3 = display_contours(preprocessed_image, contours3)
+    image_with_circles3 = display_circles(preprocessed_image, circles3)
 
 
     # Apply Hough Circle Detection from contours and preprocessed image
-    image_with_circles_preprocessed, circles = apply_hough_circle_detection_preprocessed(preprocessed_image.copy())
+    image_with_circles_preprocessed, circle = apply_hough_circle_detection_preprocessed(preprocessed_image.copy())
 
-    #merged_contours = filter_contours([contours, contours1, contours2, contours3], circles)
-    merged_contours = merge_and_postprocess_contours([contours, contours1, contours2, contours3], circles)
+    #merged_contours = merge_and_postprocess_contours([contours, contours1, contours2, contours3], circle)
+    #image_with_merged_contours = display_contours(preprocessed_image, merged_contours)
 
-    image_with_merged_contours = display_contours(preprocessed_image, merged_contours)
+    merged_contours = merge_and_postprocess_circles([circle, circles, circles1, circles2, circles3])
+    image_with_merged_contours = display_circles(preprocessed_image, merged_contours)
 
 
     # Display all images side by side
-    fig, axes = plt.subplots(4, 5, figsize=(18, 18))
+    fig, axes = plt.subplots(5, 5, figsize=(18, 18))
 
     # Plot the original image
     axes[0, 0].imshow(cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB))
@@ -135,10 +144,31 @@ def main():
         axes[3, 0].axvline(x=peak, color='r', linestyle='--')
     axes[3, 0].axis('off')
 
-    # Plot the image with merged contours
-    axes[3, 1].imshow(image_with_merged_contours, cmap='gray')
-    axes[3, 1].set_title('Merged Contours')
+    # Plot the circles from otsu cannied image
+    axes[3, 1].imshow(image_with_circles, cmap='gray')
+    axes[3, 1].set_title('Circles from Otsu Cannied')
     axes[3, 1].axis('off')
+
+    # Plot the circles from multi-otsu cannied image
+    axes[3, 2].imshow(image_with_circles1, cmap='gray')
+    axes[3, 2].set_title('circles from Multi-Otsu Cannied')
+    axes[3, 2].axis('off')
+
+    # Plot the circles from color-based cannied image
+    axes[3, 3].imshow(image_with_circles2, cmap='gray')
+    axes[3, 3].set_title('circles from Color-based Cannied')
+    axes[3, 3].axis('off')
+
+    # Plot the circles from adaptive cannied image
+    axes[3, 4].imshow(image_with_circles3, cmap='gray')
+    axes[3, 4].set_title('circles from Adaptive Cannied')
+    axes[3, 4].axis('off')
+
+
+    # Plot the image with merged contours
+    axes[4, 1].imshow(image_with_merged_contours, cmap='gray')
+    axes[4, 1].set_title('Merged Contours')
+    axes[4, 1].axis('off')
 
     
     plt.tight_layout()

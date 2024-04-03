@@ -235,3 +235,41 @@ def contours_to_circles(contours):
     return np.array(circles)
 
 
+def non_max_suppression_circles(circles, overlapThresh):
+    if len(circles) == 0:
+        return []
+
+    pick = []
+
+    circles = np.array(circles)
+
+    idxs = np.argsort(circles[:, 2])
+
+    while len(idxs) > 0:
+        last = len(idxs) - 1
+        i = idxs[last]
+        pick.append(i)
+
+        suppress = [last]
+
+        for pos in range(last):
+            if np.sqrt((circles[idxs[pos]][0] - circles[i][0])**2 + (circles[idxs[pos]][1] - circles[i][1])**2) < (circles[idxs[pos]][2] + circles[i][2]):
+                suppress.append(pos)
+
+        print(f"Suppress: {suppress}")
+        print(f"idxs before deletion: {idxs}")
+
+        idxs = np.delete(idxs, suppress)
+
+        print(f"idxs after deletion: {idxs}")
+
+    return circles[pick]
+
+def merge_and_postprocess_circles(circles_list, overlapThresh=0.5):
+    merged_circles = []
+    for sublist in circles_list:
+        for circle in sublist:
+            if len(circle) == 3:  # Ensure the circle is represented as (x, y, radius)
+                merged_circles.append(circle)
+    merged_circles = non_max_suppression_circles(merged_circles, overlapThresh)
+    return merged_circles
