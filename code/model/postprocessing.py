@@ -1,8 +1,10 @@
 # postprocessing.py
 import cv2
+import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.cluster import DBSCAN
-import numpy as np
+import heapq
+
 
 
 def apply_opening(image, kernel_size=3, iterations=1):
@@ -164,7 +166,7 @@ def cluster_contours(contours):
 
     return clustered_contours
 
-def merge_and_postprocess_contours(contours_list, circles):
+#def merge_and_postprocess_contours(contours_list, circles):
     # Merge contours into a single list
     merged_contours = [cnt for sublist in contours_list for cnt in sublist]
 
@@ -190,7 +192,7 @@ def merge_and_postprocess_contours(contours_list, circles):
 
     return merged_contours
 
-def merge_and_postprocess_contours1(contours_list, circles):
+#def merge_and_postprocess_contours1(contours_list, circles):
     # Merge contours into a single list
     merged_contours = [cnt for sublist in contours_list for cnt in sublist]
 
@@ -234,37 +236,6 @@ def contours_to_circles(contours):
             circles.append([int(x), int(y), int(radius)])
     return np.array(circles)
 
-
-def non_max_suppression_circles(circles, overlapThresh):
-    if len(circles) == 0:
-        return []
-
-    pick = []
-
-    circles = np.array(circles)
-
-    idxs = np.argsort(circles[:, 2])
-
-    while len(idxs) > 0:
-        last = len(idxs) - 1
-        i = idxs[last]
-        pick.append(i)
-
-        suppress = [last]
-
-        for pos in range(last):
-            if np.sqrt((circles[idxs[pos]][0] - circles[i][0])**2 + (circles[idxs[pos]][1] - circles[i][1])**2) < (circles[idxs[pos]][2] + circles[i][2]):
-                suppress.append(pos)
-
-        print(f"Suppress: {suppress}")
-        print(f"idxs before deletion: {idxs}")
-
-        idxs = np.delete(idxs, suppress)
-
-        print(f"idxs after deletion: {idxs}")
-
-    return circles[pick]
-
 def merge_and_postprocess_circles(circles_list, overlapThresh=0.5):
     merged_circles = []
     for sublist in circles_list:
@@ -273,3 +244,61 @@ def merge_and_postprocess_circles(circles_list, overlapThresh=0.5):
                 merged_circles.append(circle)
     merged_circles = non_max_suppression_circles(merged_circles, overlapThresh)
     return merged_circles
+
+def non_max_suppression_circles(circles, overlapThresh, size_ratio=0.5, multi_overlap_thresh=2, distance_thresh=20):
+    if len(circles) == 0:
+        return []
+
+    # Pre-processing step to remove circles that contain more than two other circles
+    circles = [(circle[2], tuple(circle)) for circle in circles]
+    circles_to_remove = []
+    for i, (_, circle) in enumerate(circles):
+        count = sum(1 for _, other_circle in circles if np.sqrt((other_circle[0] - circle[0])**2 + (other_circle[1] - circle[1])**2) + other_circle[2] < circle[2])
+        if count > multi_overlap_thresh:
+            circles_to_remove.append(i)
+    for i in sorted(circles_to_remove, reverse=True):
+        del circles[i]
+
+    # Continue with the rest of the non-maximum suppression algorithm
+    pick = []
+    heapq.heapify(circles)
+
+    while circles:
+        _, circle = heapq.heappop(circles)
+        pick.append(circle)
+
+        suppress = []
+
+        for i in range(len(circles)):
+            _, other_circle = circles[i]
+            if np.sqrt((other_circle[0] - circle[0])**2 + (other_circle[1] - circle[1])**2) + min(other_circle[2], circle[2]) < max(other_circle[2], circle[2]):
+                # If the smaller circle is significantly smaller than the larger one, suppress the smaller one
+                if min(other_circle[2], circle[2]) / max(other_circle[2], circle[2]) < size_ratio:
+                    if other_circle[2] < circle[2]:
+                        suppress.append(i)
+                    else:
+                        pick.remove(circle)
+                        break
+                else:
+                    suppress.append(i)
+
+        # Remove circles from the end of the list to avoid changing the indices of the remaining circles
+        for i in sorted(suppress, reverse=True):
+            del circles[i]
+
+    # Remove duplicates
+    unique_circles = []
+    for circle1 in pick:
+        is_duplicate = False
+        for circle2 in unique_circles:
+            distance = np.sqrt((circle1[0] - circle2[0])**2 + (circle1[1] - circle2[1])**2)
+            if distance < distance_thresh:
+                is_duplicate = True
+                if circle1[2] > circle2[2]:  # If circle1 has a larger radius, replace circle2 with circle1
+                    unique_circles.remove(circle2)
+                    unique_circles.append(circle1)
+                break
+        if not is_duplicate:
+            unique_circles.append(circle1)
+
+    return unique_circles
