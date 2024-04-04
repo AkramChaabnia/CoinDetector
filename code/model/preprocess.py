@@ -22,7 +22,7 @@ def apply_median_blur(image, kernel_size=5):
     
     return blurred_image
 
-def apply_gamma_correction(image, gamma=1.0):
+def apply_gamma_correction(image, gamma=1.5):
     # Apply gamma correction
     gamma_inv = 1.0 / gamma
     table = np.array([((i / 255.0) ** gamma_inv) * 255 for i in np.arange(0, 256)]).astype("uint8")
@@ -40,7 +40,7 @@ def apply_histogram_equalization(image):
 
     return equalized_image
 
-def apply_adaptive_histogram_equalization(image, clip_limit=2.0, tile_grid_size=(14, 14)):    
+def apply_adaptive_histogram_equalization(image, clip_limit=0.7, tile_grid_size=(10, 10)):    
     # Create CLAHE object
     clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=tile_grid_size)
 

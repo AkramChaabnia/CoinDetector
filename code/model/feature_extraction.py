@@ -84,13 +84,20 @@ def display_circles(image, circles):
     circles = np.uint16(np.around(circles))
 
     # Draw each circle
-    for c in circles:
+    for i, c in enumerate(circles):
         # Draw outer circle
         cv2.circle(image_with_circles, (c[0], c[1]), c[2], (0, 255, 0), 3)
         # Draw center point
         cv2.circle(image_with_circles, (c[0], c[1]), 1, (0, 0, 255), 5)
 
-    return image_with_circles
+    # Display the total number of circles
+    cv2.putText(image_with_circles, 'Total Coins: ' + str(len(circles)), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+    # Print the total number of circles to the console
+    number_of_coins = len(circles)
+    print('Total Coins:', number_of_coins)
+
+    return image_with_circles, number_of_coins
 
 def display_circles1(image, circles):
     image_with_circles = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
