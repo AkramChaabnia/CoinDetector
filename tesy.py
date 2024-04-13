@@ -113,6 +113,40 @@ def register_user(access_token, member_id):
     except requests.exceptions.RequestException as e:
         print(f"Error during user registration: {e}")
 
+        
+def handle_reauthorization(access_token, user_id):
+    """
+    Handles reauthorization flow after a 403 error (Forbidden).
+
+    This function informs the user about missing consents, prompts them to reauthorize, and obtains a new access token.
+
+    Args:
+        access_token (str): The current (potentially invalid) access token.
+        user_id (str): The user ID.
+
+    Returns:
+        dict or None: A dictionary containing user information on success (after reauthorization), None on error.
+    """
+    print("User might be missing required consents. Please reauthorize the application in Polar settings:")
+    print(f"Polar Account Settings: https://account.polar.com/")
+
+    # User interaction to reauthorize (outside this code example)
+    # ... (consider using input() to prompt the user to continue)
+
+    # Placeholder for user to confirm reauthorization
+    user_confirmed_reauthorization = True  # Replace with actual user confirmation logic
+
+    if user_confirmed_reauthorization:
+        # Repeat the authorization flow to get a new access token
+        # (consider using get_access_token function again)
+        new_access_token, _ = get_access_token(client_id, client_secret, authorization_code)  # Placeholder for new code
+        print("Reauthorization successful. Retrieving user information again...")
+        return get_user_information(new_access_token, user_id)  # Call get_user_information with new token
+    else:
+        print("User did not confirm reauthorization. Exiting.")
+        return None
+
+
 
 def get_user_information(access_token, user_id):
     """
@@ -135,9 +169,13 @@ def get_user_information(access_token, user_id):
         response.raise_for_status()  # Raise exception for non-200 status codes
 
         return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error retrieving user information: {e}")
-        return None
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 403:
+            print("Access denied. Please check your access token and permissions.")
+            return handle_reauthorization(access_token, user_id)
+        else:
+            print(f"Error retrieving user information: {e}")
+            return None
 
 
 def retrieve_heart_rate_data(access_token, user_id, date):
@@ -225,7 +263,7 @@ try:
     else:
         print("An error occurred while retrieving heart rate data.")
 except requests.exceptions.HTTPError as e:
-    if e.response.status_code == 404:
-        print("Heart rate data not found. Please check your user ID and date.")
+    if e.response.status_code == 403:
+        print("Access denied. Please check your access token and permissions.")
     else:
         print(f"Error retrieving heart rate data: {e}")
