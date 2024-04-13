@@ -64,8 +64,9 @@ def evaluate_image(predictions, ground_truths, threshold=0.5):
 
 
 def main():
-    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\0.jpg"
-    annotation_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\labels\\0.json"
+    image_path = "dataset\\images\\40.jpg"
+    annotation_path = "dataset\\labels\\40.json"
+
 
     predictions,_ = model_test(image_path)
 

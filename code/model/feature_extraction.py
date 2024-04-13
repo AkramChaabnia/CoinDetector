@@ -95,7 +95,7 @@ def display_circles(image, circles):
 
     # Print the total number of circles to the console
     number_of_coins = len(circles)
-    print('Total Coins:', number_of_coins)
+    #print('Total Coins:', number_of_coins)
 
     return image_with_circles, number_of_coins
 

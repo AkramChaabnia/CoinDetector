@@ -65,25 +65,36 @@ def apply_adaptive_threshold(image):
     return segmented_image
 
 def multi_otsu_thresholding(image):
-    # Calculer l'histogramme
+    print("Starting multi_otsu_thresholding method...")
+
+    # Calculate histogram
+    print("Calculating histogram...")
     hist = np.histogram(image.ravel(), bins=256)[0]
-    
-    # Détecter les pics significatifs dans l'histogramme
+
+    # Detect significant peaks in the histogram
+    print("Detecting significant peaks in the histogram...")
     peaks, _ = find_peaks(hist, height=5000, width=3, distance=60)
-    print("Pics Détectés:", peaks)
+    print("Detected Peaks:", peaks)
 
-    # Déterminer le nombre de classes pour la segmentation
-    num_classes = len(peaks) + 1  # Ajouter 1 car le nombre de classes est le nombre de seuils + 1
-    print("Nombre de Classes pour la Segmentation:", num_classes)
+    # Determine the number of classes for segmentation
+    num_classes = len(peaks) + 1  # Add 1 because the number of classes is the number of thresholds + 1
+    print("Number of Classes for Segmentation:", num_classes)
 
-    # Appliquer la segmentation avec multi-Otsu
+    # Apply segmentation with multi-Otsu
+    print("Applying segmentation with multi-Otsu...")
+    if num_classes == 1:
+        num_classes = 2  # Ensure at least 2 classes for multi-Otsu
+        
     thresholds = threshold_multiotsu(image, classes=num_classes)
-    print("Seuils de Segmentation:", thresholds)
+    print("Segmentation Thresholds:", thresholds)
 
-    # Appliquer la segmentation
+    # Apply segmentation
+    print("Applying segmentation...")
     segmented_image = apply_segmentation(image, thresholds)
 
+    print("multi_otsu_thresholding method completed successfully.")
     return segmented_image, hist, peaks
+
 
 def color_based_segmentation(image):
     # Convert image from BGR to HSV color space
@@ -113,7 +124,7 @@ def color_based_segmentation(image):
 
     # Apply color-based segmentation for each coin denomination
     for coin, (lower, upper) in color_ranges.items():
-        print("Segmenting", coin, "with HSV range:", lower, "-", upper)
+        #print("Segmenting", coin, "with HSV range:", lower, "-", upper)
         # Threshold the HSV image to get only pixels within the specified color range
         mask = cv2.inRange(hsv_image, np.array(lower), np.array(upper))
         

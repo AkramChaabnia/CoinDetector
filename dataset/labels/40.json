@@ -91,6 +91,24 @@
       "shape_type": "circle",
       "flags": {},
       "mask": null
+    },
+    {
+      "label": "0.005",
+      "points": [
+        [
+          510.13513513513516,
+          873.6486486486486
+        ],
+        [
+          587.1621621621622,
+          946.6216216216217
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "circle",
+      "flags": {},
+      "mask": null
     }
   ],
   "imagePath": "..\\..\\..\\Downloads\\Images (1)\\Images\\40.jpg",
