@@ -156,7 +156,7 @@ def retrieve_heart_rate_data(access_token, user_id, date):
     """
 
     # Replace with your actual Polar API endpoint for heart rate data retrieval
-    heart_rate_url = f"https://www.polaraccesslink.com/v3/users/{user_id}/continuous-heart-rate/{date}"
+    heart_rate_url = f"https://www.polaraccesslink.com/v3/users/continuous-heart-rate/{date}"
     headers = {"Authorization": f"Bearer {access_token}"}
 
     #register_user(access_token, f"user_id_{user_id}")  # Example custom member ID
@@ -197,7 +197,8 @@ if __name__ == "__main__":
     #member_id = f"user_id_{user_id}"  # Example custom member ID
     #register_user(access_token, member_id)
 
-    # Step 3: Retrieve User Information
+# Step 3: Retrieve User Information
+try:
     user_information = get_user_information(access_token, user_id)
     if user_information is None:
         print("Failed to retrieve user information.")
@@ -207,13 +208,24 @@ if __name__ == "__main__":
         for key, value in user_information.items():
              print(f"{key}: {value}")
         print(user_information)  # Print the entire user information dictionary
+except requests.exceptions.HTTPError as e:
+    if e.response.status_code == 403:
+        print("Access denied. Please check your access token and permissions.")
+        handle_reauthorization(access_token, user_id)
+    else:
+        print(f"Error retrieving user information: {e}")
 
-    # Step 4 (Optional): Retrieve Heart Rate Data (replace with your endpoint)
-    date = "2024-04-10"  # Example date (optional)
+# Step 4 (Optional): Retrieve Heart Rate Data (replace with your endpoint)
+date = "2024-04-10"  # Example date (optional)
+try:
     heart_rate_data = retrieve_heart_rate_data(access_token, user_id, date)
-
     if heart_rate_data:
         print("Heart rate data retrieved successfully!")
         # Process or display the retrieved heart rate data (heart_rate_data dictionary)
     else:
         print("An error occurred while retrieving heart rate data.")
+except requests.exceptions.HTTPError as e:
+    if e.response.status_code == 404:
+        print("Heart rate data not found. Please check your user ID and date.")
+    else:
+        print(f"Error retrieving heart rate data: {e}")
