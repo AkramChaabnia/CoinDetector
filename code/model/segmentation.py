@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from skimage.filters import threshold_multiotsu
 from scipy.signal import find_peaks
-from postprocessing import *
-from preprocess import *
+from .postprocessing import *
+from .preprocess import *
 
 
 def apply_segmentation(hist_processed_image, thresholds):
@@ -68,7 +68,6 @@ def multi_otsu_thresholding(image):
     # Calculer l'histogramme
     hist = np.histogram(image.ravel(), bins=256)[0]
     
-
     # Détecter les pics significatifs dans l'histogramme
     peaks, _ = find_peaks(hist, height=5000, width=3, distance=60)
     print("Pics Détectés:", peaks)

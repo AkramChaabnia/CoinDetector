@@ -33,7 +33,7 @@ def move_files(image_dir, json_dir, files, output_dir):
         shutil.copy(json_path, output_dir)
 
 def split_dataset(data_path, shuffle=True):
-    ratio = (60, 20, 20)
+    ratio = (60, 20, 20) #entraînement, validation, test
     
     dataset_files = [f for f in os.listdir(data_path) if f.endswith('.json')]
     if shuffle:

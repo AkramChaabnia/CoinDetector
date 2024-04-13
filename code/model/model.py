@@ -1,9 +1,9 @@
 import cv2
 import matplotlib.pyplot as plt
-from preprocess import *
-from segmentation import *
-from feature_extraction import *
-from postprocessing import *
+from .preprocess import *
+from .segmentation import *
+from .feature_extraction import *
+from .postprocessing import *
 
 def model_test(image_path, display=False):
     #image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\3.jpg"
@@ -181,11 +181,13 @@ def model_test(image_path, display=False):
         return merged_contours, number_of_coin
 
 def main():
-    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\3.jpg"
-    model_test(image_path, display=True)
-
+    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\0.jpg"
     #model_test(image_path, display=True)
-    #print("Total Coins Detected:", number_of_coins)
+
+    merged_contours, number_of_coin = model_test(image_path)
+    print("Merged Contours:", merged_contours)
+    print("Total Coins Detected:", number_of_coin)
+
 
 
 if __name__ == "__main__":

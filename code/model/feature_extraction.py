@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from skimage import feature, transform
 import numpy as np
-from postprocessing import *
+from .postprocessing import *
 
 
 def apply_canny_edge_detection(image, threshold1=100, threshold2=200):
