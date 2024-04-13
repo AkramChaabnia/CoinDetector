@@ -2,6 +2,8 @@ import json
 import cv2
 import numpy as np
 
+from code.model.model import model_test
+
 
 def calculate_iou(pred_box, gt_box):
     x1, y1, r1 = pred_box
@@ -65,7 +67,7 @@ def main():
     image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\0.jpg"
     annotation_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\labels\\0.json"
 
-    predictions = [(2308, 1181, 245), (1439, 788, 269), (2620, 2056, 276), (1477, 2059, 306), (731, 2281, 317), (1254, 2983, 321)]
+    predictions,_ = model_test(image_path)
 
     with open(annotation_path, 'r') as f:
         annotations = json.load(f)
