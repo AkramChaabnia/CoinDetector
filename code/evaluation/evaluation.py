@@ -37,6 +37,7 @@ def calculate_f1_score(predictions, ground_truths, threshold=0.5):
 
   positives = 0
   true_positives = 0
+  false_negatives = 0
   matched_gt = set()  # Keep track of matched ground truth annotations
 
   for prediction in predictions:
@@ -52,6 +53,8 @@ def calculate_f1_score(predictions, ground_truths, threshold=0.5):
           break
     if not matched:
       positives += 1  # Count False Positives
+      false_negatives += 1  # Add False Negatives
+
 
   # Calculate precision, recall, and F1 score (assuming you have a calculate_iou function)
   if positives == 0:
@@ -74,6 +77,46 @@ def calculate_mde(predictions, ground_truths):
         total_distance += min_distance
     return total_distance / len(predictions)
 
+def create_confusion_matrix(predictions, ground_truths, threshold):
+  """
+  Creates a confusion matrix for the evaluation.
+
+  Args:
+    predictions: A list of predicted bounding boxes.
+    ground_truths: A list of ground truth bounding boxes.
+    threshold: IoU threshold for considering a prediction as a true positive.
+
+  Returns:
+    A confusion matrix represented as a dictionary.
+  """
+
+  confusion_matrix = {
+      "True Positives": 0,
+      "False Positives": 0,
+      "False Negatives": 0,
+      "True Negatives": 0,  # Not applicable in object detection with binary classes
+  }
+
+  matched_gt = set()  # Initialize an empty set to track matched ground truths
+
+  for prediction in predictions:
+    matched = False
+    for ground_truth in ground_truths:
+      if ground_truth not in matched_gt:  # Avoid counting same GT multiple times
+        iou = calculate_iou(prediction, ground_truth)
+        if iou >= threshold:
+          if ground_truth in matched_gt:
+            confusion_matrix["False Positives"] += 1  # Predicted as coin, but not a real coin
+          else:
+            confusion_matrix["True Positives"] += 1  # Predicted as coin, and is a real coin
+          matched = True
+          matched_gt.add(ground_truth)  # Add matched ground truth to the set
+          break
+    if not matched and ground_truth not in matched_gt:
+      confusion_matrix["False Negatives"] += 1  # Not predicted as coin, but is a real coin
+
+  return confusion_matrix
+
 
 def evaluate_image(image_path, annotation_path, threshold=0.5):
     predictions,_ = model_test(image_path)
@@ -91,13 +134,17 @@ def evaluate_image(image_path, annotation_path, threshold=0.5):
 
     f1_score, precision, recall = calculate_f1_score(predictions, ground_truths, threshold)
     mde = calculate_mde(predictions, ground_truths)
+    confusion_matrix = create_confusion_matrix(predictions, ground_truths, threshold)
 
     print("f1_score, precision, recall:", f1_score, precision, recall)
     print("Mean Detection Error (MDE):", mde)
     print("Nb Detected Coins:", len(predictions))
     print("Nb Annotated Coins:", len(ground_truths))
+    print("Confusion Matrix:", confusion_matrix)
 
-    return {"F1 Score": f1_score, "Mean Detection Error (MDE)": mde, "Nb Detected Coins": len(predictions), "Nb Annotated Coins": len(ground_truths)}
+    return {"F1 Score": f1_score, "Mean Detection Error (MDE)": mde, "Nb Detected Coins": len(predictions), "Nb Annotated Coins": len(ground_truths), "confusion_matrix": confusion_matrix}
+
+
 
 def evaluate_dataset(image_paths, annotation_paths, threshold=0.5):
     """
@@ -115,6 +162,8 @@ def evaluate_dataset(image_paths, annotation_paths, threshold=0.5):
     total_mde = 0
     total_detected = 0
     total_annotated = 0
+    confusion_matrix = {"True Positives": 0, "False Positives": 0, "False Negatives": 0}  
+
 
     for image_path, annotation_path in zip(image_paths, annotation_paths):
         result = evaluate_image(image_path, annotation_path, threshold)
@@ -122,6 +171,10 @@ def evaluate_dataset(image_paths, annotation_paths, threshold=0.5):
         total_mde += result["Mean Detection Error (MDE)"]
         total_detected += result["Nb Detected Coins"]
         total_annotated += result["Nb Annotated Coins"]
+        confusion_matrix["True Positives"] += result["confusion_matrix"]["True Positives"]
+        confusion_matrix["False Positives"] += result["confusion_matrix"]["False Positives"]
+        confusion_matrix["False Negatives"] += result["confusion_matrix"]["False Negatives"]
+
 
     average_f1 = total_f1 / len(image_paths)
     average_mde = total_mde / len(image_paths)
@@ -130,6 +183,7 @@ def evaluate_dataset(image_paths, annotation_paths, threshold=0.5):
         "Mean Detection Error (MDE)": average_mde,
         "Nb Detected Coins": total_detected,
         "Nb Annotated Coins": total_annotated,
+        "Confusion Matrix": confusion_matrix
     }
 
 def main():

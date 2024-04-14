@@ -82,8 +82,8 @@ class CoinDataset:
     print(f"Training set size: {len(self.train_images)}")
     print(f"Validation set size: {len(self.val_images)}")
     print(f"Test set size: {len(self.test_images)}")
-    print(f"Test set images: {self.test_images}")
-    print(f"Test set annotations: {self.test_annotations}")
+    #print(f"Test set images: {self.test_images}")
+    #print(f"Test set annotations: {self.test_annotations}")
 
   def __len__(self):
         """
