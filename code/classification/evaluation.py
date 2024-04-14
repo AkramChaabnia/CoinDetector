@@ -52,22 +52,7 @@ def calculate_mde(predictions, ground_truths):
     return total_distance / len(predictions)
 
 
-def evaluate_image(predictions, ground_truths, threshold=0.5):
-    f1_score = calculate_f1_score(predictions, ground_truths, threshold)
-    mde = calculate_mde(predictions, ground_truths)
-    return {
-        "F1 Score": f1_score,
-        "Mean Detection Error (MDE)": mde,
-        "Nb Detected Coins": len(predictions),
-        "Nb Annotated Coins": len(ground_truths),
-    }
-
-
-def main():
-    image_path = "dataset\\images\\40.jpg"
-    annotation_path = "dataset\\labels\\40.json"
-
-
+def evaluate_image(image_path, annotation_path, threshold=0.5):
     predictions,_ = model_test(image_path)
 
     with open(annotation_path, 'r') as f:
@@ -81,12 +66,22 @@ def main():
     print("Predictions:", predictions)
     print("Ground Truths:", ground_truths)
 
-    results = evaluate_image(predictions, ground_truths)
+    f1_score = calculate_f1_score(predictions, ground_truths, threshold)
+    mde = calculate_mde(predictions, ground_truths)
 
-    print("F1 Score:", results["F1 Score"])
-    print("Mean Detection Error (MDE):", results["Mean Detection Error (MDE)"])
-    print("Nb Detected Coins:", results["Nb Detected Coins"])
-    print("Nb Annotated Coins:", results["Nb Annotated Coins"])
+    print("F1 Score:", f1_score)
+    print("Mean Detection Error (MDE):", mde)
+    print("Nb Detected Coins:", len(predictions))
+    print("Nb Annotated Coins:", len(ground_truths))
+
+    return {"F1 Score": f1_score, "Mean Detection Error (MDE)": mde, "Nb Detected Coins": len(predictions), "Nb Annotated Coins": len(ground_truths)}
+
+def main():
+    image_path = "dataset\\images\\40.jpg"
+    annotation_path = "dataset\\labels\\40.json"
+
+    evaluate_image(image_path, annotation_path)
+
 
 
 if __name__ == "__main__":
