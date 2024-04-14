@@ -23,23 +23,44 @@ def calculate_iou(pred_box, gt_box):
 
 
 def calculate_f1_score(predictions, ground_truths, threshold=0.5):
-    positives = 0
-    true_positives = 0
+  """
+  Calculates F1 score, precision, and recall.
 
-    for prediction in predictions:
-        for ground_truth in ground_truths:
-            iou = calculate_iou(prediction, ground_truth)
-            if iou >= threshold:
-                positives += 1
-                if iou == 1.0:
-                    true_positives += 1
-                    break
-    if positives == 0:
-        return 0
-    precision = true_positives / positives
-    recall = true_positives / len(ground_truths)
-    f1_score = 2 * (precision * recall) / (precision + recall)
-    return f1_score, precision, recall
+  Args:
+    predictions: A list of predicted bounding boxes.
+    ground_truths: A list of ground truth bounding boxes.
+    threshold: IoU threshold for considering a prediction as a true positive.
+
+  Returns:
+    A tuple containing F1 score, precision, and recall.
+  """
+
+  positives = 0
+  true_positives = 0
+  matched_gt = set()  # Keep track of matched ground truth annotations
+
+  for prediction in predictions:
+    matched = False
+    for ground_truth in ground_truths:
+      if ground_truth not in matched_gt:  # Avoid counting same GT multiple times
+        iou = calculate_iou(prediction, ground_truth)
+        if iou >= threshold:
+          positives += 1
+          true_positives += 1
+          matched_gt.add(ground_truth)
+          matched = True
+          break
+    if not matched:
+      positives += 1  # Count False Positives
+
+  # Calculate precision, recall, and F1 score (assuming you have a calculate_iou function)
+  if positives == 0:
+    return 0, 0, 0  # Handle division by zero
+  precision = true_positives / positives
+  recall = true_positives / len(ground_truths)
+  f1_score = 2 * (precision * recall) / (precision + recall)
+
+  return f1_score, precision, recall
 
 
 def calculate_mde(predictions, ground_truths):
