@@ -1,8 +1,6 @@
-import json
 import math
 import cv2
 import numpy as np
-import os
 
 from code.dataset import load_annotations
 from code.model.model import model_test
@@ -80,34 +78,27 @@ def create_confusion_matrix(predictions, ground_truths, threshold):
         "True Negatives": 0,
     }
 
-    matched_gt = set()
-
-    for i, prediction in enumerate(predictions):
+    for prediction in predictions:
         matched = False
-        for j, ground_truth in enumerate(ground_truths):
-            distance = calculate_distance(prediction, ground_truth)
-            if distance < threshold:
+        for ground_truth in ground_truths:
+            iou = calculate_iou(prediction, ground_truth)
+            if iou >= threshold:
                 confusion_matrix["True Positives"] += 1
-                matched_gt.add(j)
                 matched = True
                 break
         if not matched:
             confusion_matrix["False Positives"] += 1
 
-    confusion_matrix["False Negatives"] = len(ground_truths) - len(matched_gt)
+    confusion_matrix["False Negatives"] = len(ground_truths) - confusion_matrix["True Positives"]
 
     return confusion_matrix
 
 def evaluate_image(image_path, annotation_path, threshold=0.5):
     predictions,_ = model_test(image_path)
+    ground_truths = load_annotations(annotation_path)
 
-    with open(annotation_path, 'r') as f:
-        annotations = json.load(f)
-        ground_truths = []
-        for shape in annotations["shapes"]:
-            x, y = shape["points"][0]
-            radius = cv2.norm(np.array(shape["points"][0]) - np.array(shape["points"][1])) / 2
-            ground_truths.append((x, y, radius))
+    print("Predictions:", predictions)
+    print("Ground Truths:", ground_truths)
 
     f1_score, precision, recall = calculate_f1_score(predictions, ground_truths, threshold)
     mde = calculate_mde(predictions, ground_truths)
@@ -157,10 +148,15 @@ def evaluate_dataset(image_paths, annotation_paths, threshold=0.5):
 
 
 def main():
-    # Exemple d'utilisation
+    image_path="dataset/images/40.jpg"
+    annotation_path="dataset/labels/40.json"
+    evaluate_image(image_path, annotation_path)
+"""
     image_paths = ["dataset/images/40.jpg", "dataset/images/41.jpg"]
     annotation_paths = ["dataset/labels/40.json", "dataset/labels/41.json"]
     evaluate_dataset(image_paths, annotation_paths)
+
+"""
 
 
 if __name__ == "__main__":
