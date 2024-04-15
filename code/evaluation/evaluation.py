@@ -109,9 +109,6 @@ def evaluate_image(image_path, annotation_path, threshold=0.5):
             radius = cv2.norm(np.array(shape["points"][0]) - np.array(shape["points"][1])) / 2
             ground_truths.append((x, y, radius))
 
-    #print("Predictions:", predictions)
-    #print("Ground Truths:", ground_truths)
-
     f1_score, precision, recall = calculate_f1_score(predictions, ground_truths, threshold)
     mde = calculate_mde(predictions, ground_truths)
     confusion_matrix = create_confusion_matrix(predictions, ground_truths, threshold)
@@ -143,9 +140,9 @@ def evaluate_dataset(image_paths, annotation_paths, threshold=0.5):
         total_mde += result["Mean Detection Error (MDE)"]
         total_detected += result["Nb Detected Coins"]
         total_annotated += result["Nb Annotated Coins"]
-        confusion_matrix["True Positives"] += result["Confusion Matrix"]["True Positives"]
-        confusion_matrix["False Positives"] += result["Confusion Matrix"]["False Positives"]
-        confusion_matrix["False Negatives"] += result["Confusion Matrix"]["False Negatives"]
+        confusion_matrix["True Positives"] += result["confusion_matrix"]["True Positives"]
+        confusion_matrix["False Positives"] += result["confusion_matrix"]["False Positives"]
+        confusion_matrix["False Negatives"] += result["confusion_matrix"]["False Negatives"]
 
     average_f1 = total_f1 / len(image_paths)
     average_mde = total_mde / len(image_paths)
