@@ -63,42 +63,53 @@ def calculate_mde(predictions, ground_truths):
         total_distance += min_distance
     return total_distance / len(predictions)
 
-
-def calculate_distance(prediction, ground_truth):
-    x1, y1, _ = prediction
-    x2, y2, _ = ground_truth
-    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-
-
 def create_confusion_matrix(predictions, ground_truths, threshold):
-    confusion_matrix = {
-        "True Positives": 0,
-        "False Positives": 0,
-        "False Negatives": 0,
-        "True Negatives": 0,
-    }
+  """
+  Creates a confusion matrix for object detection evaluation.
 
-    for prediction in predictions:
-        matched = False
-        for ground_truth in ground_truths:
-            iou = calculate_iou(prediction, ground_truth)
-            if iou >= threshold:
-                confusion_matrix["True Positives"] += 1
-                matched = True
-                break
-        if not matched:
-            confusion_matrix["False Positives"] += 1
+  Args:
+      predictions (list): List of predicted bounding boxes (center_x, center_y, radius).
+      ground_truths (list): List of ground truth bounding boxes (center_x, center_y, radius).
+      threshold (float): IoU threshold for considering a prediction as a true positive.
 
-    confusion_matrix["False Negatives"] = len(ground_truths) - confusion_matrix["True Positives"]
+  Returns:
+      dict: Confusion matrix dictionary with counts for True Positives, False Positives, and False Negatives.
+  """
 
-    return confusion_matrix
+  confusion_matrix = {
+      "True Positives": 0,
+      "False Positives": 0,
+      "False Negatives": 0,
+  }
+
+  matched_gt = set()  # Track matched ground truth annotations
+
+  for prediction in predictions:
+    matched = False
+    for ground_truth in ground_truths:
+      if ground_truth not in matched_gt:
+        iou = calculate_iou(prediction, ground_truth)
+        if iou >= threshold:
+          confusion_matrix["True Positives"] += 1
+          matched_gt.add(ground_truth)
+          matched = True
+          break
+    if not matched:
+      confusion_matrix["False Positives"] += 1
+
+  confusion_matrix["False Negatives"] = len(ground_truths) - len(matched_gt)
+
+  return confusion_matrix
+
+
+
 
 def evaluate_image(image_path, annotation_path, threshold=0.5):
     predictions,_ = model_test(image_path)
     ground_truths = load_annotations(annotation_path)
 
-    print("Predictions:", predictions)
-    print("Ground Truths:", ground_truths)
+    #print("Predictions:", predictions)
+    #print("Ground Truths:", ground_truths)
 
     f1_score, precision, recall = calculate_f1_score(predictions, ground_truths, threshold)
     mde = calculate_mde(predictions, ground_truths)
