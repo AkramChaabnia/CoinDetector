@@ -6,7 +6,7 @@ from skimage.filters import threshold_multiotsu
 
 
 def main():
-    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\40.jpg"
+    image_path = "dataset/reste/203.jpg"
     image = io.imread(image_path)
 
 # Convert the image to grayscale
