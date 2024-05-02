@@ -7,7 +7,7 @@ from model.preprocess import *
 
 def main():
     # Lire l'image
-    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\63.JPG"
+    image_path = "dataset/reste/203.jpg"
     original_image = cv2.imread(image_path)
 
     # Preprocess the image

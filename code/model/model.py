@@ -6,7 +6,7 @@ from .feature_extraction import *
 from .postprocessing import *
 
 def model_test(image_path, display=False):
-    #image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\3.jpg"
+    #image_path = "dataset\reste\203.jpg"
     original_image = cv2.imread(image_path)
 
     # Preprocess the image
@@ -181,6 +181,8 @@ def model_test(image_path, display=False):
         return merged_contours, number_of_coin
 
 def main():
+    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\0.jpg"
+    #model_test(image_path, display=True)
 
     image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\10.jpg"
     model_test(image_path, display=True)
