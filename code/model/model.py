@@ -49,7 +49,7 @@ def model_test(image_path, display=False):
     image_with_circles3, number_of_coins3 = display_circles(preprocessed_image4, circles3)
 
     # Apply Hough Circle Detection from contours and preprocessed image
-    image_with_circles_preprocessed, circle = apply_hough_circle_detection_preprocessed(preprocessed_image3.copy())
+    #image_with_circles_preprocessed, circle = apply_hough_circle_detection_preprocessed(preprocessed_image3.copy())
 
     merged_contours = merge_and_postprocess_circles([circles, circles1, circles2, circles3])
     image_with_merged_contours, number_of_coin = display_circles(preprocessed_image4, merged_contours)
@@ -110,9 +110,9 @@ def model_test(image_path, display=False):
         axes[1, 4].axis('off')
 
     # Plot the image with Hough circles
-        axes[2, 0].imshow(image_with_circles_preprocessed, cmap='gray')
-        axes[2, 0].set_title('Hough Circles Image', color='blue', fontsize=10)
-        axes[2, 0].axis('off')
+        #axes[2, 0].imshow(image_with_circles_preprocessed, cmap='gray')
+        #axes[2, 0].set_title('Hough Circles Image', color='blue', fontsize=10)
+        #axes[2, 0].axis('off')
 
     # Plot the contours from otsu cannied image
         axes[2, 1].imshow(image_with_contours, cmap='gray')
@@ -181,12 +181,16 @@ def model_test(image_path, display=False):
         return merged_contours, number_of_coin
 
 def main():
-    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\0.jpg"
-    #model_test(image_path, display=True)
 
+    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\10.jpg"
+    model_test(image_path, display=True)
+"""
     merged_contours, number_of_coin = model_test(image_path)
     print("Merged Contours:", merged_contours)
     print("Total Coins Detected:", number_of_coin)
+
+
+"""
 
 
 
