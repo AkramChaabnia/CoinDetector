@@ -8,6 +8,11 @@ from .postprocessing import *
 def model_test(image_path, display=False):
     #image_path = "dataset\reste\203.jpg"
     original_image = cv2.imread(image_path)
+        # Check if the image is loaded correctly
+    if original_image is None:
+        print(f"Failed to load image at {image_path}")
+        return
+
 
     # Preprocess the image
     preprocessed_image = apply_gaussian_blur(original_image.copy())
@@ -181,10 +186,10 @@ def model_test(image_path, display=False):
         return merged_contours, number_of_coin
 
 def main():
-    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\0.jpg"
+    image_path = "dataset/images/0.jpg"
     #model_test(image_path, display=True)
 
-    image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\10.jpg"
+    #image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\10.jpg"
     model_test(image_path, display=True)
 """
     merged_contours, number_of_coin = model_test(image_path)
