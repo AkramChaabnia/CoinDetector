@@ -11,18 +11,16 @@ class CoinDataset:
   Class to load and manage the coin detection dataset.
   """
 
-  def __init__(self, image_dir, annotation_dir, test_size=0.2, validation_size=0.2):
+  def __init__(self, image_dir, annotation_dir, test_size=0.4):
     """
     Args:
       image_dir (str): Path to the directory containing images.
       annotation_dir (str): Path to the directory containing annotation files (JSON format).
-      test_size (float, optional): Proportion of data for the test set (default: 0.2).
-      validation_size (float, optional): Proportion of data for the validation set (default: 0.2).
+      test_size (float): Fraction of the dataset to include in the test and validation sets.
     """
     self.image_dir = image_dir
     self.annotation_dir = annotation_dir
     self.test_size = test_size
-    self.validation_size = validation_size
 
     image_dir_path = Path(image_dir)
     #self.image_paths = [str(image_dir_path / f) for f in image_dir_path.glob("*.jp*")]
@@ -62,9 +60,9 @@ class CoinDataset:
 
     images, annotations = zip(*image_annotation_pairs)
     
-    # Split the data into 80% training and 20% for validation and test
+    # Split the data into training 60% and temporary 40%
     X_train, X_temp, y_train, y_temp = train_test_split(
-        images, annotations, test_size=0.2, random_state=42
+        images, annotations, test_size=0.4, random_state=42
     )
 
     # Split the temporary set into equal parts validation and test
@@ -157,7 +155,7 @@ def main():
 
 
     # Test loading annotations using the separate function
-    annotation_path = dataset.annotation_paths[20]
+    annotation_path = dataset.annotation_paths[10]
     loaded_annotation = load_annotations(annotation_path)
     print(f"Loaded annotation (example): {loaded_annotation[0]}")
 
