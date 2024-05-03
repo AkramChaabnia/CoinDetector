@@ -1,5 +1,6 @@
 import math
 import cv2
+from matplotlib import pyplot as plt
 import numpy as np
 
 from code.dataset import load_annotations
@@ -7,6 +8,7 @@ from code.model.model import model_test
 
 
 def calculate_iou(pred_box, gt_box):
+    #function to calculate the intersection over union of two circles
     x1, y1, r1 = pred_box
     x2, y2, r2 = gt_box
     d = np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
@@ -47,10 +49,12 @@ def calculate_f1_score(predictions, ground_truths, threshold=0.5):
         return 0, 0, 0
     precision = true_positives / positives
     recall = true_positives / len(ground_truths)
-    f1_score = 2 * (precision * recall) / (precision + recall)
+    if precision + recall != 0:
+        f1_score = 2 * (precision * recall) / (precision + recall)
+    else:
+        f1_score = 0
 
     return f1_score, precision, recall
-
 
 def calculate_mde(predictions, ground_truths):
     total_distance = 0
@@ -101,27 +105,66 @@ def create_confusion_matrix(predictions, ground_truths, threshold):
 
   return confusion_matrix
 
+def visualize_predictions(image, predictions, ground_truths, threshold):
+    # Define colors
+    green = (0, 255, 0)  # Green for True Positives
+    red = (0, 0, 255)  # Red for False Positives
+    blue = (255, 0, 0)  # Blue for Missed Detections (False Negatives)
 
+    # Draw bounding boxes
+    for prediction in predictions:
+        x, y, r = prediction
+        cv2.circle(image, (int(x), int(y)), int(r), green, thickness=2)
 
+    for ground_truth in ground_truths:
+        found = False
+        for prediction in predictions:
+            if calculate_iou(prediction, ground_truth) >= threshold:
+                found = True
+                break
+        if not found:
+            x, y, r = ground_truth
+            cv2.circle(image, (int(x), int(y)), int(r), blue, thickness=2)
+
+    return image
 
 def evaluate_image(image_path, annotation_path, threshold=0.5):
-    predictions,_ = model_test(image_path)
+    predictions, _ = model_test(image_path)
     ground_truths = load_annotations(annotation_path)
+    image = cv2.imread(image_path)
 
-    #print("Predictions:", predictions)
-    #print("Ground Truths:", ground_truths)
+    # Visualize predictions
+    image_with_predictions = visualize_predictions(image.copy(), predictions, ground_truths, threshold)
 
+    # Calculate evaluation metrics
     f1_score, precision, recall = calculate_f1_score(predictions, ground_truths, threshold)
     mde = calculate_mde(predictions, ground_truths)
     confusion_matrix = create_confusion_matrix(predictions, ground_truths, threshold)
 
+    # Display evaluation metrics
     print("f1_score, precision, recall:", f1_score, precision, recall)
     print("Mean Detection Error (MDE):", mde)
     print("Nb Detected Coins:", len(predictions))
     print("Nb Annotated Coins:", len(ground_truths))
     print("Confusion Matrix:", confusion_matrix)
 
-    return {"F1 Score": f1_score, "Mean Detection Error (MDE)": mde, "Nb Detected Coins": len(predictions), "Nb Annotated Coins": len(ground_truths), "confusion_matrix": confusion_matrix}
+# Convert the BGR image to RGB
+    image_with_predictions_rgb = cv2.cvtColor(image_with_predictions, cv2.COLOR_BGR2RGB)
+
+# Display the image
+    plt.figure(figsize=(10, 10))  # You can adjust the figure size to your preference
+    plt.imshow(image_with_predictions_rgb)
+    plt.axis('off')  # To hide the axis values
+    plt.show()
+
+    return {
+        "F1 Score": f1_score,
+        "Mean Detection Error (MDE)": mde,
+        "Nb Detected Coins": len(predictions),
+        "Nb Annotated Coins": len(ground_truths),
+        "confusion_matrix": confusion_matrix,
+        "visualized_image": image_with_predictions.copy()  # Return a copy to avoid modification
+    }
 
 
 def evaluate_dataset(image_paths, annotation_paths, threshold=0.5):
@@ -159,8 +202,8 @@ def evaluate_dataset(image_paths, annotation_paths, threshold=0.5):
 
 
 def main():
-    image_path="dataset/images/40.jpg"
-    annotation_path="dataset/labels/40.json"
+    image_path="dataset/images/0.jpg"
+    annotation_path="dataset/labels/0.json"
     evaluate_image(image_path, annotation_path)
 """
     image_paths = ["dataset/images/40.jpg", "dataset/images/41.jpg"]
