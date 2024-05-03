@@ -107,26 +107,37 @@ def create_confusion_matrix(predictions, ground_truths, threshold):
 
 def visualize_predictions(image, predictions, ground_truths, threshold):
     # Define colors
-    green = (0, 255, 0)  # Green for True Positives
-    red = (0, 0, 255)  # Red for False Positives
-    blue = (255, 0, 0)  # Blue for Missed Detections (False Negatives)
+    green = (0, 255, 0)  # Green for correctly detected circles
+    red = (0, 0, 255)  # Red for false positives
+    blue = (255, 0, 0)  # Blue for missed detections
+
+    # Track matched predictions and ground truths
+    matched_predictions = set()
+    matched_ground_truths = set()
 
     # Draw bounding boxes
     for prediction in predictions:
-        x, y, r = prediction
-        cv2.circle(image, (int(x), int(y)), int(r), green, thickness=2)
-
-    for ground_truth in ground_truths:
-        found = False
-        for prediction in predictions:
-            if calculate_iou(prediction, ground_truth) >= threshold:
-                found = True
+        matched = False
+        for ground_truth in ground_truths:
+            if ground_truth not in matched_ground_truths and calculate_iou(prediction, ground_truth) >= threshold:
+                matched_predictions.add(prediction)
+                matched_ground_truths.add(ground_truth)
+                matched = True
                 break
-        if not found:
-            x, y, r = ground_truth
-            cv2.circle(image, (int(x), int(y)), int(r), blue, thickness=2)
+        if not matched:
+            cv2.circle(image, (int(prediction[0]), int(prediction[1])), int(prediction[2]), red, thickness=2)
+
+    # Draw correctly detected circles
+    for prediction in matched_predictions:
+        cv2.circle(image, (int(prediction[0]), int(prediction[1])), int(prediction[2]), green, thickness=2)
+
+    # Draw missed detections
+    for ground_truth in ground_truths:
+        if ground_truth not in matched_ground_truths:
+            cv2.circle(image, (int(ground_truth[0]), int(ground_truth[1])), int(ground_truth[2]), blue, thickness=2)
 
     return image
+
 
 def evaluate_image(image_path, annotation_path, threshold=0.5):
     predictions, _ = model_test(image_path)
@@ -202,8 +213,8 @@ def evaluate_dataset(image_paths, annotation_paths, threshold=0.5):
 
 
 def main():
-    image_path="dataset/images/0.jpg"
-    annotation_path="dataset/labels/0.json"
+    image_path="dataset/images/10.jpg"
+    annotation_path="dataset/labels/10.json"
     evaluate_image(image_path, annotation_path)
 """
     image_paths = ["dataset/images/40.jpg", "dataset/images/41.jpg"]
