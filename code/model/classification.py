@@ -118,7 +118,7 @@ def classify_region(gabor_features, lbp_features, texture_features):
     return closest_coin
 
 # Charger l'image
-image_path = "dataset/images/90.JPG"
+image_path = "dataset/images/93.JPG"
 image = cv2.imread(image_path)
 
 # Extraire les régions d'intérêt
