@@ -186,7 +186,7 @@ def model_test(image_path, display=False):
         return merged_contours, number_of_coin
 
 def main():
-    image_path = "dataset/images/0.jpg"
+    image_path = "dataset/images/10.jpg"
     #model_test(image_path, display=True)
 
     #image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\10.jpg"
