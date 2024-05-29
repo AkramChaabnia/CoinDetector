@@ -214,7 +214,8 @@ Vous serez invité à choisir entre évaluer le modèle ou le tester sur une seu
 
 ## ✍️ Auteurs <a name = "authors"></a>
 
-Akram Chaabnia - Mohamed Razi - Wassim Chikhi
+Akram Chaabnia - Travail initial
+Mohamed Razi - Commencer l'implementation de la classification
 
 ## 🎉 Remerciements <a name = "acknowledgement"></a>
 

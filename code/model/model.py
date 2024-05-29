@@ -180,10 +180,10 @@ def model_pipeline(image_path, display=False, details=False):
 
 def main():
     image_path = "dataset/images/0.jpg"
-    #model_test(image_path, display=True)
+    #model_pipeline(image_path, display=True)
 
     #image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\10.jpg"
-    model_test(image_path, display=True)
+    model_pipeline(image_path, display=True)
 """
     merged_circles, number_of_coin = model_pipeline(image_path)
     print("Merged Circles:", merged_circles)

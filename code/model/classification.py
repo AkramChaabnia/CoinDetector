@@ -1,13 +1,13 @@
 import cv2
 import numpy as np
 from skimage.feature import local_binary_pattern
-from code.model.model import model_test
+from code.model.model import model_pipeline
 
 
 
 # Fonction pour extraire les régions d'intérêt
 def extract_ROI(image_path):
-    circles, _ = model_test(image_path)
+    circles, _ = model_pipeline(image_path)
     image = cv2.imread(image_path)
     ROIs = []
     for circle in circles:

@@ -1,6 +1,6 @@
 import os
 import cv2
-from code.classification.feauture_extraction import extract_gabor_features, extract_lbp_features
+from code.model.feature_extraction import extract_gabor_features, extract_lbp_features
 
 
 
