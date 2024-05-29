@@ -4,45 +4,48 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import os
 import cv2
-import glob  # Using glob for case-insensitive matching
 
 class CoinDataset:
   """
-  Class to load and manage the coin detection dataset.
-  """
+    Cette classe représente un ensemble de données de pièces de monnaie.
 
+    Attributs:
+    image_dir (str): Le répertoire contenant les images.
+    annotation_dir (str): Le répertoire contenant les fichiers d'annotations.
+    test_size (float): La proportion des données à utiliser comme ensemble de test.
+    image_paths (list): Une liste de chemins vers les images.
+    annotation_paths (list): Une liste de chemins vers les fichiers d'annotations.
+    train_images (list): Une liste de chemins vers les images d'entraînement.
+    train_annotations (list): Une liste de chemins vers les annotations d'entraînement.
+    val_images (list): Une liste de chemins vers les images de validation.
+    val_annotations (list): Une liste de chemins vers les annotations de validation.
+    test_images (list): Une liste de chemins vers les images de test.
+    test_annotations (list): Une liste de chemins vers les annotations de test.
+
+    Méthodes:
+    __init__(self, image_dir, annotation_dir, test_size=0.4): Initialise l'objet CoinDataset.
+    _split_data(self): Vérifie les paires image-annotation et divise les données en ensembles d'entraînement, de validation et de test.
+    __len__(self): Retourne le nombre total d'images dans l'ensemble de données.
+    __getitem__(self, idx): Charge et retourne l'image et l'annotation à l'indice spécifié.
+  """
   def __init__(self, image_dir, annotation_dir, test_size=0.4):
-    """
-    Args:
-      image_dir (str): Path to the directory containing images.
-      annotation_dir (str): Path to the directory containing annotation files (JSON format).
-      test_size (float): Fraction of the dataset to include in the test and validation sets.
-    """
     self.image_dir = image_dir
     self.annotation_dir = annotation_dir
     self.test_size = test_size
 
     image_dir_path = Path(image_dir)
-    #self.image_paths = [str(image_dir_path / f) for f in image_dir_path.glob("*.jp*")]
     self.image_paths = [str(f) for f in image_dir_path.glob("*.jp*")]
 
     annotation_dir_path = Path(annotation_dir)
     self.annotation_paths = [str(annotation_dir_path / (Path(p).stem + ".json")) for p in self.image_paths]
 
-    # Print path lengths for verification
     print(f"Number of image paths: {len(self.image_paths)}")
-    #print("the image paths are:", self.image_paths)
     print(f"Number of annotation paths: {len(self.annotation_paths)}")
-    #print("the annotation paths are:", self.annotation_paths)
 
-    # Split data (exclude images without annotations)
+    # divise les données en training, validation et test et exclut les images sans annotations
     self._split_data()
 
   def _split_data(self):
-    """
-    Splits image and annotation paths into training, validation, and test sets.
-    Excludes images without corresponding annotations.
-    """
     print("Checking image-annotation pairs...")
     image_paths_without_annotations = []
     image_annotation_pairs = [(path, annotation_path)
@@ -56,78 +59,58 @@ class CoinDataset:
     if len(image_annotation_pairs) < len(self.image_paths):
         print(f"Warning: Excluding {len(self.image_paths) - len(image_annotation_pairs)} images without annotations.")
         print(f"Image paths without annotations: {image_paths_without_annotations}")
-
-
-    images, annotations = zip(*image_annotation_pairs)
     
-    # Split the data into training 60% and temporary 40%
+    images, annotations = zip(*image_annotation_pairs)
+    # divise les données en 60% entrainement et 40% temporaire
     X_train, X_temp, y_train, y_temp = train_test_split(
         images, annotations, test_size=0.4, random_state=42
     )
 
-    # Split the temporary set into equal parts validation and test
+    # divise les données temporaires en 50% validation et 50% test
     X_val, X_test, y_val, y_test = train_test_split(
         X_temp, y_temp, test_size=0.5, random_state=42
     )
-
     self.train_images = X_train
     self.train_annotations = y_train
     self.val_images = X_val
     self.val_annotations = y_val
     self.test_images = X_test
     self.test_annotations = y_test
-
     print(f"Training set size: {len(self.train_images)}")
     print(f"Validation set size: {len(self.val_images)}")
     print(f"Test set size: {len(self.test_images)}")
-    #print(f"Test set images: {self.test_images}")
-    #print(f"Test set annotations: {self.test_annotations}")
 
   def __len__(self):
-        """
-        Returns the total number of images in the dataset (all splits combined).
-        """
         return len(self.image_paths)
 
   def __getitem__(self, idx):
-    """
-    Retrieves an image and its corresponding annotation based on the index.
-
-    Args:
-        idx (int): Index of the image-annotation pair to access.
-
-    Returns:
-        tuple: (image, annotation)
-    """
     if idx < 0 or idx >= len(self):
         raise IndexError("Index out of bounds")
     
+    # charger les images et les annotations
+    image_path = self.train_images[idx]
+    annotation_path = self.train_annotations[idx]
 
-
-    image_path = self.train_images[idx]  # Assuming you want to access from train set (modify if needed)
-    annotation_path = self.train_annotations[idx]  # Assuming you want to access from train set (modify if needed)
-
-    # Load image (replace with your image loading logic)
     print(f"Loading image: {image_path}")
-    image = cv2.imread(image_path.replace("\\", "/"))  # Replace double backslashes with forward slashes
-    # Load annotation (replace with your JSON parsing logic)
+    image = cv2.imread(image_path.replace("\\", "/"))
     print(f"Loading annotation: {annotation_path}")
     with open(annotation_path, 'r') as f:
         annotation = json.load(f)
-    # ... extract ground truth information from annotation
 
     return image, annotation
 
 
 def load_annotations(annotation_path):
     """
-    Function to load annotation data from a JSON file (assuming circle annotations).
+    Cette fonction charge les annotations à partir d'un fichier JSON.
 
-    Args:
-        annotation_path (str): Path to the JSON annotation file.
+    Paramètres:
+    annotation_path (str): Le chemin vers le fichier d'annotations à charger.
 
-    Returns:
-        list: List of ground truth information (circles represented as (x, y, radius) tuples).
+    La fonction ouvre le fichier d'annotations, lit le contenu JSON et extrait les informations de forme pour chaque annotation. Les formes dans ce contexte sont des cercles. Pour chaque cercle, elle calcule le rayon comme la moitié de la norme de la différence entre les deux points du cercle, puis ajoute un tuple (x, y, rayon) à la liste des vérités terrain.
+
+    Retourne:
+    ground_truths (list): Une liste de tuples (x, y, rayon) représentant les vérités terrain pour chaque cercle dans le fichier d'annotations.
     """
     with open(annotation_path, 'r') as f:
         annotations = json.load(f)
@@ -140,21 +123,19 @@ def load_annotations(annotation_path):
 
 
 
-
 def main():
-    # Define paths to your image and annotation directories
     image_dir = "dataset/images"
     annotation_dir = "dataset/labels"
 
-    # Create a CoinDataset instance
+    # creer un objet dataset
     dataset = CoinDataset(image_dir, annotation_dir)
 
-    # Access data using indexing (assuming training set)
+    # acceder aux images et annotations
     image, annotation = dataset[10]
     print(f"Image shape: {image.shape}")
 
 
-    # Test loading annotations using the separate function
+    # tester la fonction load_annotations
     annotation_path = dataset.annotation_paths[10]
     loaded_annotation = load_annotations(annotation_path)
     print(f"Loaded annotation (example): {loaded_annotation[0]}")
