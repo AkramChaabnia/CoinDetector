@@ -9,13 +9,13 @@ from .preprocess import *
 
 
 def apply_segmentation(hist_processed_image, thresholds):
-    # Apply thresholding
     segmented_image = np.zeros_like(hist_processed_image)
     for threshold in thresholds:
         segmented_image[hist_processed_image > threshold] = 255
 
     return segmented_image
 
+"""
 def apply_segmentation1(hist_processed_image, thresholds):
     # Appliquer la segmentation basée sur les seuils
     #_, segmented_image = cv2.threshold(hist_processed_image, thresholds[0], 255, cv2.THRESH_BINARY)
@@ -46,6 +46,7 @@ def apply_segmentation2(hist_processed_image, thresholds):
 
     return inverted_segmented_image
 
+"""
 
 def apply_otsu_threshold(image):
     # Apply Otsu's thresholding
@@ -55,13 +56,6 @@ def apply_otsu_threshold(image):
     # Apply other post-processing operations as needed
     segmented_image = apply_gaussian_blur(apply_median_blur(segmented_image))
     
-    return segmented_image
-
-
-def apply_adaptive_threshold(image):
-    # Apply adaptive thresholding
-    segmented_image = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 7)
-    #segmented_image = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
     return segmented_image
 
 def multi_otsu_thresholding(image):
@@ -86,6 +80,11 @@ def multi_otsu_thresholding(image):
 
     return segmented_image, hist, peaks
 
+def apply_adaptive_threshold(image):
+    # Apply adaptive thresholding
+    segmented_image = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 7)
+    #segmented_image = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
+    return segmented_image
 
 def color_based_segmentation(image):
     # Convert image from BGR to HSV color space
@@ -136,6 +135,7 @@ def color_based_segmentation(image):
 
     return segmented_image
 
+"""
 def edge_based_segmentation(image):
     # Convert the image to grayscale
     grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -158,6 +158,7 @@ def edge_based_segmentation(image):
     cv2.drawContours(segmented_image, contours, -1, (255, 255, 255), thickness=cv2.FILLED)  # Fills contours with white
     
     return segmented_image
+"""
 
 def combine_segmentation_results(seg_mask1, seg_mask2):
     # Calculate overlapping regions
