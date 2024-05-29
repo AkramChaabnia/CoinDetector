@@ -1,14 +1,25 @@
-import math
 import cv2
-from matplotlib import pyplot as plt
 import numpy as np
-
 from code.dataset import load_annotations
-from code.model.model import model_test
+from code.model.model import model_pipeline
 
 
 def calculate_iou(pred_box, gt_box):
-    #function to calculate the intersection over union of two circles
+    """
+    Cette fonction calcule l'Intersection sur Union (IoU) de deux cercles. 
+
+    Paramètres:
+    pred_box (tuple): Un triplet (x, y, r) représentant la zone prédite, où (x, y) est le centre du cercle et r est le rayon.
+    gt_box (tuple): Un triplet (x, y, r) représentant la zone de vérité terrain.
+
+    L'IoU est une mesure de l'overlap entre deux zones. 
+    Ici, elle est utilisée pour comparer pred_box avec gt_box.
+    La fonction retourne un score entre 0 et 1, où 1 signifie que les deux cercles se superposent parfaitement et 0 signifie qu'ils ne se superposent pas du tout.
+    Nous allons utiliser ce score pour calculer le F1-score et la matrice de confusion, car ces métriques ne fonctionnent pas directement sur les résultats binaires.
+
+    Retourne:
+    iou (float): Le score IoU entre pred_box et gt_box. Il est compris entre 0 (pas de superposition) et 1 (superposition parfaite).
+    """
     x1, y1, r1 = pred_box
     x2, y2, r2 = gt_box
     d = np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
@@ -25,6 +36,21 @@ def calculate_iou(pred_box, gt_box):
 
 
 def calculate_f1_score(predictions, ground_truths, threshold=0.5):
+    """
+    Cette fonction calcule le F1-score, la précision et le rappel pour une liste de prédictions et de vérités terrain.
+
+    Paramètres:
+    predictions (list): Une liste de zones prédites, chaque zone étant un triplet (x, y, r).
+    ground_truths (list): Une liste de zones de vérité terrain, chaque zone étant un triplet (x, y, r).
+    threshold (float): Le seuil d'IoU pour considérer une prédiction comme correcte. Par défaut, il est fixé à 0.5.
+
+    Le F1-score est ensuite calculé comme la moyenne harmonique de la précision et du rappel.
+
+    Retourne:
+    f1_score (float): Le F1-score pour les prédictions, compris entre 0 (mauvais) et 1 (bon).
+    precision (float): La précision des prédictions, c'est-à-dire le ratio des vrais positifs sur le total des positifs.
+    recall (float): Le rappel des prédictions, c'est-à-dire le ratio des vrais positifs sur le total des vérités terrain.
+    """
     positives = 0
     true_positives = 0
     false_negatives = 0
@@ -56,28 +82,20 @@ def calculate_f1_score(predictions, ground_truths, threshold=0.5):
 
     return f1_score, precision, recall
 
-def calculate_mde(predictions, ground_truths):
-    total_distance = 0
-    for prediction in predictions:
-        min_distance = float('inf')
-        for ground_truth in ground_truths:
-            distance = cv2.norm(np.array(prediction[0:2]) - np.array(ground_truth[0:2]))
-            if distance < min_distance:
-                min_distance = distance
-        total_distance += min_distance
-    return total_distance / len(predictions)
 
 def create_confusion_matrix(predictions, ground_truths, threshold):
   """
-  Creates a confusion matrix for object detection evaluation.
+    Cette fonction crée une matrice de confusion pour une liste de prédictions et de vérités terrain.
 
-  Args:
-      predictions (list): List of predicted bounding boxes (center_x, center_y, radius).
-      ground_truths (list): List of ground truth bounding boxes (center_x, center_y, radius).
-      threshold (float): IoU threshold for considering a prediction as a true positive.
+    Paramètres:
+    predictions (list): Une liste de zones prédites, chaque zone étant un triplet (x, y, r).
+    ground_truths (list): Une liste de zones de vérité terrain, chaque zone étant un triplet (x, y, r).
+    threshold (float): Le seuil d'IoU pour considérer une prédiction comme correcte.
 
-  Returns:
-      dict: Confusion matrix dictionary with counts for True Positives, False Positives, and False Negatives.
+    La fonction parcourt chaque prédiction et chaque vérité terrain, et calcule l'IoU entre elles. Si l'IoU est supérieur au seuil, la prédiction est considérée comme un vrai positif. Si aucune vérité terrain ne correspond à la prédiction, elle est considérée comme un faux positif. Les vérités terrain qui ne correspondent à aucune prédiction sont considérées comme des faux négatifs.
+
+    Retourne:
+    confusion_matrix (dict): Un dictionnaire contenant le nombre de vrais positifs, de faux positifs et de faux négatifs.
   """
 
   confusion_matrix = {
@@ -86,7 +104,7 @@ def create_confusion_matrix(predictions, ground_truths, threshold):
       "False Negatives": 0,
   }
 
-  matched_gt = set()  # Track matched ground truth annotations
+  matched_gt = set()
 
   for prediction in predictions:
     matched = False
@@ -105,68 +123,60 @@ def create_confusion_matrix(predictions, ground_truths, threshold):
 
   return confusion_matrix
 
-def visualize_predictions(image, predictions, ground_truths, threshold):
-    # Define colors
-    green = (0, 255, 0)  # Green for correctly detected circles
-    red = (0, 0, 255)  # Red for false positives
-    blue = (255, 0, 0)  # Blue for missed detections
 
-    # Track matched predictions and ground truths
-    matched_predictions = set()
-    matched_ground_truths = set()
+def calculate_mde(predictions, ground_truths):
+    """
+    Cette fonction calcule la Mean Distance Error (MDE) pour une liste de prédictions et de vérités terrain.
 
-    # Draw bounding boxes
+    Paramètres:
+    predictions (list): Une liste de zones prédites, chaque zone étant un triplet (x, y, r).
+    ground_truths (list): Une liste de zones de vérité terrain, chaque zone étant un triplet (x, y, r).
+
+    La fonction parcourt chaque prédiction et chaque vérité terrain, et calcule la distance euclidienne entre elles. Pour chaque prédiction, elle trouve la vérité terrain la plus proche (c'est-à-dire avec la distance minimale). La MDE est ensuite la moyenne de ces distances minimales.
+
+    Retourne:
+    mde (float): La Mean Distance Error pour les prédictions. Elle est toujours positive, et une valeur plus petite indique une meilleure précision.
+    """
+    total_distance = 0
     for prediction in predictions:
-        matched = False
+        min_distance = float('inf')
         for ground_truth in ground_truths:
-            if ground_truth not in matched_ground_truths and calculate_iou(prediction, ground_truth) >= threshold:
-                matched_predictions.add(prediction)
-                matched_ground_truths.add(ground_truth)
-                matched = True
-                break
-        if not matched:
-            cv2.circle(image, (int(prediction[0]), int(prediction[1])), int(prediction[2]), red, thickness=2)
-
-    # Draw correctly detected circles
-    for prediction in matched_predictions:
-        cv2.circle(image, (int(prediction[0]), int(prediction[1])), int(prediction[2]), green, thickness=2)
-
-    # Draw missed detections
-    for ground_truth in ground_truths:
-        if ground_truth not in matched_ground_truths:
-            cv2.circle(image, (int(ground_truth[0]), int(ground_truth[1])), int(ground_truth[2]), blue, thickness=2)
-
-    return image
+            distance = cv2.norm(np.array(prediction[0:2]) - np.array(ground_truth[0:2]))
+            if distance < min_distance:
+                min_distance = distance
+        total_distance += min_distance
+    return total_distance / len(predictions)
 
 
-def evaluate_image(image_path, annotation_path, threshold=0.5):
-    predictions, _ = model_test(image_path)
+def evaluate_image(image_path, annotation_path, threshold=0.5, print=False):
+    """
+    Cette fonction évalue les prédictions de notre modèle sur une image en utilisant plusieurs métriques.
+
+    Paramètres:
+    image_path (str): Le chemin vers l'image à évaluer.
+    annotation_path (str): Le chemin vers le fichier d'annotations de vérité terrain pour l'image.
+    threshold (float): Le seuil d'IoU pour considérer une prédiction comme correcte. Par défaut, il est fixé à 0.5.
+    print (bool): Si True, imprime les résultats de l'évaluation. Par défaut, il est fixé à False.
+
+    La fonction charge l'image et les annotations, fait des prédictions sur l'image, puis calcule le F1-score, la matrice de confusion et la Mean Distance Error (MDE) pour les prédictions par rapport aux vérités terrain.
+
+    Retourne:
+    results (dict): Un dictionnaire contenant le F1-score, la MDE, le nombre de pièces détectées, le nombre de pièces annotées et la matrice de confusion.
+    """
+
+    predictions, _ = model_pipeline(image_path)
     ground_truths = load_annotations(annotation_path)
-    image = cv2.imread(image_path)
 
-    # Visualize predictions
-    image_with_predictions = visualize_predictions(image.copy(), predictions, ground_truths, threshold)
-
-    # Calculate evaluation metrics
     f1_score, precision, recall = calculate_f1_score(predictions, ground_truths, threshold)
-    mde = calculate_mde(predictions, ground_truths)
     confusion_matrix = create_confusion_matrix(predictions, ground_truths, threshold)
+    mde = calculate_mde(predictions, ground_truths)
 
-    # Display evaluation metrics
-    print("f1_score, precision, recall:", f1_score, precision, recall)
-    print("Mean Detection Error (MDE):", mde)
-    print("Nb Detected Coins:", len(predictions))
-    print("Nb Annotated Coins:", len(ground_truths))
-    print("Confusion Matrix:", confusion_matrix)
-
-# Convert the BGR image to RGB
-    image_with_predictions_rgb = cv2.cvtColor(image_with_predictions, cv2.COLOR_BGR2RGB)
-
-# Display the image
-    plt.figure(figsize=(10, 10))  # You can adjust the figure size to your preference
-    plt.imshow(image_with_predictions_rgb)
-    plt.axis('off')  # To hide the axis values
-    plt.show()
+    if(print):
+        print("f1_score, precision, recall:", f1_score, precision, recall)
+        print("Mean Detection Error (MDE):", mde)
+        print("Nb Detected Coins:", len(predictions))
+        print("Nb Annotated Coins:", len(ground_truths))
+        print("Confusion Matrix:", confusion_matrix)
 
     return {
         "F1 Score": f1_score,
@@ -174,11 +184,23 @@ def evaluate_image(image_path, annotation_path, threshold=0.5):
         "Nb Detected Coins": len(predictions),
         "Nb Annotated Coins": len(ground_truths),
         "confusion_matrix": confusion_matrix,
-        "visualized_image": image_with_predictions.copy()  # Return a copy to avoid modification
     }
 
 
 def evaluate_dataset(image_paths, annotation_paths, threshold=0.5):
+    """
+    Cette fonction évalue les prédictions de notre modèle sur un ensemble de données en utilisant plusieurs métriques.
+
+    Paramètres:
+    image_paths (list): Une liste de chemins vers les images à évaluer.
+    annotation_paths (list): Une liste de chemins vers les fichiers d'annotations de vérité terrain pour les images.
+    threshold (float): Le seuil d'IoU pour considérer une prédiction comme correcte. Par défaut, il est fixé à 0.5.
+
+    La fonction parcourt chaque image et son fichier d'annotations correspondant, fait des prédictions sur l'image, puis calcule le F1-score, la matrice de confusion et la Mean Distance Error (MDE) pour les prédictions par rapport aux vérités terrain. Les résultats sont ensuite agrégés pour l'ensemble de données entier.
+
+    Retourne:
+    results (dict): Un dictionnaire contenant le F1-score moyen, la MDE moyenne, le nombre total de pièces détectées, le nombre total de pièces annotées et la matrice de confusion agrégée.
+    """
     total_f1 = 0
     total_mde = 0
     total_detected = 0
@@ -220,7 +242,6 @@ def main():
     image_paths = ["dataset/images/40.jpg", "dataset/images/41.jpg"]
     annotation_paths = ["dataset/labels/40.json", "dataset/labels/41.json"]
     evaluate_dataset(image_paths, annotation_paths)
-
 """
 
 
