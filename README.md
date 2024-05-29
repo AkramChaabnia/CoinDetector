@@ -226,7 +226,7 @@ Nous tenons à exprimer notre profonde gratitude à notre professeur, M. Sylvain
 Si vous avez des questions, des suggestions ou souhaitez simplement entrer en contact, voici comment me joindre :
 
 - Email : akram.chaabnia25@gmail.com
-- LinkedIn : [Votre LinkedIn](https://www.linkedin.com/in/akram-chaabnia/)
-- GitHub : [Votre GitHub](https://github.com/AkramChaabnia)
+- LinkedIn : [akram-chaabnia](https://www.linkedin.com/in/akram-chaabnia/)
+- GitHub : [AkramChaabnia](https://github.com/AkramChaabnia)
 
 N'hésitez pas à me contacter !
