@@ -1,13 +1,13 @@
 import cv2
 import numpy as np
 from skimage.feature import local_binary_pattern
-from code.model.model import model_test
+from code.model.model import model_pipeline
 
 
 
 # Fonction pour extraire les régions d'intérêt
 def extract_ROI(image_path):
-    circles, _ = model_test(image_path)
+    circles, _ = model_pipeline(image_path)
     image = cv2.imread(image_path)
     ROIs = []
     for circle in circles:
@@ -118,7 +118,7 @@ def classify_region(gabor_features, lbp_features, texture_features):
     return closest_coin
 
 # Charger l'image
-image_path = "dataset/images/90.JPG"
+image_path = "dataset/images/93.JPG"
 image = cv2.imread(image_path)
 
 # Extraire les régions d'intérêt
