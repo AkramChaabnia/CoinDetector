@@ -203,7 +203,19 @@ python -m code.main
 Vous serez invité à choisir entre évaluer le modèle ou le tester sur une seule image.
 
 - **Évaluer le Modèle**: Sélectionnez un ensemble de données (train, val, test) à évaluer.
-- **Tester sur une Seule Image**: Fournissez le numéro de l'image et affichez éventuellement les résultats détaillés.
+- **Tester sur une Seule Image**: Fournissez le numéro de l'image et choisissez entre afficher l'image résultat avec les pièces de monnaie détectées encerclées (exemple 1) ou afficher les étapes de traitement effectuées par notre modèle, de l'image originale au résultat final (exemple 2).
+
+### Exemple 1: Résultat de la détection des pièces de monnaie
+
+<p align="center">
+  <img src="Figure_1.png" alt="Résultat de la détection">
+</p>
+
+### Exemple 2: Application du modèle avec les étapes de traitement
+
+<p align="center">
+  <img src="Figure_2.png" alt="Résultat de la détection">
+</p>
 
 ## ⛏️ Construit avec <a name = "built_using"></a>
 

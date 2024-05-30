@@ -68,7 +68,7 @@ def model_pipeline(image_path, display=False, details=False):
     if display==True:
         if details==True:
     # Afficher les images et les tracés côte à côte
-            fig, axes = plt.subplots(5, 5, figsize=(18, 18))
+            fig, axes = plt.subplots(4, 5, figsize=(18, 18))
 
             axes[0, 0].imshow(cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB))
             axes[0, 0].set_title('Original Image', color='blue', fontsize=10)
@@ -110,6 +110,12 @@ def model_pipeline(image_path, display=False, details=False):
             axes[1, 4].set_title('Adaptive Cannied Image', color='blue', fontsize=10)
             axes[1, 4].axis('off')
 
+            axes[2, 0].plot(hist)
+            axes[2, 0].set_title('Histogram with Peaks', color='blue', fontsize=10)
+            for peak in peaks:
+                axes[2, 0].axvline(x=peak, color='r', linestyle='--')
+            axes[2, 0].axis('off')
+
             axes[2, 1].imshow(image_with_contours, cmap='gray')
             axes[2, 1].set_title('Contours from Otsu Cannied', color='blue', fontsize=10)
             axes[2, 1].axis('off')
@@ -126,10 +132,9 @@ def model_pipeline(image_path, display=False, details=False):
             axes[2, 4].set_title('Contours from Adaptive Cannied', color='blue', fontsize=10)
             axes[2, 4].axis('off')
 
-            axes[3, 0].plot(hist)
-            axes[3, 0].set_title('Histogram with Peaks', color='blue', fontsize=10)
-            for peak in peaks:
-                axes[3, 0].axvline(x=peak, color='r', linestyle='--')
+            axes[3, 0].imshow(image_with_merged_circles, cmap='gray')
+            axes[3, 0].text(10, 30, 'Total Coins: ' + str(number_of_coin), color='red', fontsize=12)
+            axes[3, 0].set_title('Merged Contours', color='blue', fontsize=10)
             axes[3, 0].axis('off')
 
             axes[3, 1].imshow(image_with_circles, cmap='gray')
@@ -152,10 +157,6 @@ def model_pipeline(image_path, display=False, details=False):
             axes[3, 4].set_title('circles from Adaptive Cannied', color='blue', fontsize=10)
             axes[3, 4].axis('off')
 
-            axes[4, 1].imshow(image_with_merged_circles, cmap='gray')
-            axes[4, 1].text(10, 30, 'Total Coins: ' + str(number_of_coin), color='red', fontsize=12)
-            axes[4, 1].set_title('Merged Contours', color='blue', fontsize=10)
-            axes[4, 1].axis('off')
 
             plt.tight_layout()
             plt.show()
@@ -183,7 +184,7 @@ def main():
     #model_pipeline(image_path, display=True)
 
     #image_path = "F:\\France\\paris_cite\\S2\\image\\projet\\CoinDetector\\dataset\\images\\10.jpg"
-    model_pipeline(image_path, display=True)
+    model_pipeline(image_path, display=True, details=True)
 """
     merged_circles, number_of_coin = model_pipeline(image_path)
     print("Merged Circles:", merged_circles)
